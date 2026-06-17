@@ -14,6 +14,11 @@ Add focused tests for critical business logic and UI behavior.
 - ExchangeRatesService.
 - API smoke tests with Supertest.
 
+## E2E Tests
+
+- user registration flow;
+- complete spin flow and spin persistence, regardless of win or loss.
+
 ## Frontend Tests
 
 - GameCard.

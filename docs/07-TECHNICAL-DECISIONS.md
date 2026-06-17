@@ -899,6 +899,30 @@ These areas carry the highest risk and best demonstrate engineering quality.
 
 ---
 
+## TD-071 — Use a Persistent Authenticated Navbar
+
+### Decision
+
+Authenticated users see a persistent top navbar with current user, current balance, currency conversion controls, and logout.
+
+### Reason
+
+This keeps account actions and balance conversion available on every authenticated page instead of hiding them inside a single screen.
+
+---
+
+## TD-072 — Keep Request Logging Per Request and Non-Sensitive
+
+### Decision
+
+Log every backend request with non-sensitive metadata such as method, path, status code, duration, and userId when available.
+
+### Reason
+
+This gives useful observability without exposing passwords, cookies, JWTs, or raw request bodies.
+
+---
+
 ## TD-071 — Do Not Enforce a Global Coverage Threshold
 
 ### Decision

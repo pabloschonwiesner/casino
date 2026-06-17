@@ -30,7 +30,8 @@ Component:
 
 Placement:
 
-- inside SlotMachinePage.
+- inside the authenticated top navbar as a popover/dropdown.
+- available on every authenticated page.
 
 Behavior:
 
@@ -38,6 +39,7 @@ Behavior:
 - default to user's preferred currency;
 - convert only when user clicks button;
 - display converted balance, exchange rate, timestamp;
+- display the target currency flag and label in the selector and the converted result;
 - show warning: display-only conversion.
 
 ## Acceptance Criteria

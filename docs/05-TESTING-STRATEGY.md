@@ -208,6 +208,23 @@ Must test:
 - converted result appears;
 - error message appears.
 
+#### Authenticated Navbar
+
+Must test:
+
+- shows user identity;
+- shows balance;
+- opens currency converter popover/dropdown;
+- shows logout action in the same dropdown;
+- keeps controls accessible by keyboard.
+
+### E2E Tests
+
+Must test:
+
+- user registration flow;
+- complete spin flow and spin persistence, regardless of win or loss.
+
 ## 6. Accessibility Testing
 
 Automated checks focus on roles and labels with React Testing Library.
@@ -266,4 +283,5 @@ Manual validation must include:
 - currency conversion;
 - dark mode;
 - keyboard navigation;
+- authenticated navbar;
 - deployed URLs.

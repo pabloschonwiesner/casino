@@ -71,6 +71,8 @@ frontend/src
   types/
 ```
 
+Authenticated users use a persistent layout with a top navbar that shows the current user, current balance, currency conversion controls, and logout.
+
 ### Routing
 
 Routes:
@@ -108,6 +110,8 @@ Startup behavior:
 - if 401, treat as guest.
 
 JWT is not accessible to frontend JavaScript because it is stored in an HttpOnly cookie.
+
+Protected backend routes can rely on `req.user`; the frontend authenticated layout consumes the authenticated user returned by `/auth/me`.
 
 ## 4. Backend Architecture
 

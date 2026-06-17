@@ -15,15 +15,18 @@ Implement registration, login, logout, current user, and protected frontend rout
 ## Rules
 
 - JWT stored in HttpOnly cookie.
-- New user starts with 20.00 coins.
+- New user balance is set to 20.00 coins by application code on registration.
 - Email is normalized lowercase.
 - Password is hashed with bcryptjs.
 - Country is selected at registration.
+- Country selector shows country name and flag.
 - Preferred currency is derived from selected country.
 
 ## Frontend
 
 - AuthProvider.
+- Authenticated layout with persistent top navbar.
+- Navbar shows user info, balance, logout, and currency conversion dropdown.
 - Login page.
 - Register page.
 - ProtectedRoute.

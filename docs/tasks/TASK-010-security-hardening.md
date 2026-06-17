@@ -26,6 +26,8 @@ Make security measures explicit and reviewable.
 - CORS restricted by FRONTEND_URL.
 - no wildcard CORS with credentials.
 - no sensitive logging.
+- request logging includes method, path, status code, duration, and userId when available.
+- logging runs for every request, not only protected endpoints.
 - auth/register/spin rate limits.
 
 ## Acceptance Criteria

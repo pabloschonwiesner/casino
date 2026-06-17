@@ -131,8 +131,8 @@ Response:
       "iso2": "MT",
       "iso3": "MLT",
       "name": "Malta",
-      "currencyCode": "EUR",
-      "flagUrl": "https://flagcdn.com/mt.svg"
+      "flagUrl": "https://flagcdn.com/mt.svg",
+      "currencyCode": "EUR"
     }
   ]
 }
@@ -153,7 +153,8 @@ Response:
       "code": "EUR",
       "name": "Euro",
       "symbol": "€",
-      "decimalPlaces": 2
+      "decimalPlaces": 2,
+      "flagUrl": "https://flagcdn.com/mt.svg"
     }
   ]
 }

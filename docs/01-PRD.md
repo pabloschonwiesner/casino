@@ -12,6 +12,7 @@ The purpose of  Casino is to provide a simple but complete casino-style experien
 
 - public users can browse and search games;
 - registered users can access protected gameplay;
+- authenticated users see a persistent top navbar with their user info, current balance, and logout;
 - authenticated users can favorite games;
 - the Slot Machine uses virtual coins, fixed reels, payout rules, and persistent spin history;
 - users can view their current virtual balance converted into another currency for display only.
@@ -185,6 +186,8 @@ Every spin must be persisted.
 ### 8.6 Currency Conversion
 
 Authenticated users can convert their current virtual coin balance to another currency for display only.
+
+The conversion UI is available from the authenticated top navbar during the whole session.
 
 Rules:
 

@@ -32,6 +32,8 @@ Implement the PostgreSQL schema with Prisma and seed initial catalog data.
 - All imported games use game type `slot`.
 - All imported games are available in all seeded countries.
 - Missing thumbnails are allowed.
+- countries include hardcoded `flagUrl` values in seed data.
+- user balance is initialized in application code during registration.
 
 ## Acceptance Criteria
 

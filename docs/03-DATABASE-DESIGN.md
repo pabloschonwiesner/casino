@@ -78,6 +78,7 @@ Columns:
 iso2 PK
 iso3 UNIQUE
 name
+flag_url
 currency_code FK -> currencies.code
 created_at
 updated_at
@@ -145,7 +146,7 @@ Columns:
 id UUID PK
 email UNIQUE
 password_hash
-balance DECIMAL(12,2) DEFAULT 0
+balance DECIMAL(12,2)
 country_iso2 FK -> countries.iso2
 preferred_currency_code FK -> currencies.code
 created_at
@@ -156,6 +157,7 @@ Rules:
 
 - email is normalized lowercase;
 - balance cannot be negative;
+- balance is set in application code during registration, not by a database default;
 - password hash is never returned by API.
 
 ### user_favorite_games
@@ -247,6 +249,8 @@ Seeded currencies:
 ```text
 USD, EUR, GBP, ARS, BRL, CAD, JPY, AUD, CHF, MXN
 ```
+
+The currency conversion UI may use a seeded representative country flag for each currency when rendering dropdown options and the converted result.
 
 Seeded countries:
 

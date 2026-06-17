@@ -30,6 +30,7 @@ app.enableCors({ origin: FRONTEND_URL, credentials: true });
 - Helmet enabled.
 - CORS configured with frontend URL.
 - Prisma module available.
+- request logger exists and can attach non-sensitive request metadata.
 
 ## Suggested Commit
 
