@@ -40,7 +40,7 @@ const SLOT_REELS = [
 - 2 bananas: bet × 5
 - 3 lemons: bet × 3
 
-Only consecutive symbols from the left count. Wins are not cumulative. 2 lemons do not win.
+Only consecutive symbols from the left count. Only the highest applicable payout for a single spin should be awarded. Wins are not cumulative. 2 lemons do not win.
 
 ## Frontend
 
