@@ -23,4 +23,8 @@ frontend/.vscode/*
 frontend/.idea
 frontend/.DS_Store
 
+backend/.env
+backend/.env.local
+backend/.env.production
+backend/.env.development
 backend/node_modules
