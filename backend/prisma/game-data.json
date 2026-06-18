@@ -1,0 +1,86 @@
+[
+  {
+    "id": "legacy-of-dead",
+    "title": "Legacy of Dead",
+    "provider": "Play'n GO",
+    "thumb": "https://images.playngonetwork.com/legacy-of-dead/thumb.jpg",
+    "startUrl": "https://playngonetwork.com/casino/ContainerLauncher?pid=1&gid=legacyofdead&lang=en_GB&practice=1&channel=desktop"
+  },
+  {
+    "id": "book-of-dead",
+    "title": "Book of Dead",
+    "provider": "Play'n GO",
+    "thumb": "https://images.playngonetwork.com/book-of-dead/thumb.jpg",
+    "startUrl": "https://playngonetwork.com/casino/ContainerLauncher?pid=1&gid=bookofdead&lang=en_GB&practice=1&channel=desktop"
+  },
+  {
+    "id": "reactoonz",
+    "title": "Reactoonz",
+    "provider": "Play'n GO",
+    "thumb": "https://images.playngonetwork.com/reactoonz/thumb.jpg",
+    "startUrl": "https://playngonetwork.com/casino/ContainerLauncher?pid=1&gid=reactoonz&lang=en_GB&practice=1&channel=desktop"
+  },
+  {
+    "id": "fire-joker",
+    "title": "Fire Joker",
+    "provider": "Play'n GO",
+    "thumb": "https://images.playngonetwork.com/fire-joker/thumb.jpg",
+    "startUrl": "https://playngonetwork.com/casino/ContainerLauncher?pid=1&gid=firejoker&lang=en_GB&practice=1&channel=desktop"
+  },
+  {
+    "id": "starburst",
+    "title": "Starburst",
+    "provider": "NetEnt",
+    "thumb": "https://static.netent.com/games/starburst/thumb.jpg",
+    "startUrl": "https://games.netent.com/casino/starburst"
+  },
+  {
+    "id": "gonzo-quest",
+    "title": "Gonzo's Quest",
+    "provider": "NetEnt",
+    "thumb": "https://static.netent.com/games/gonzos-quest/thumb.jpg",
+    "startUrl": "https://games.netent.com/casino/gonzos-quest"
+  },
+  {
+    "id": "mega-moolah",
+    "title": "Mega Moolah",
+    "provider": "Microgaming",
+    "thumb": "https://casino.microgaming.com/games/mega-moolah/thumb.jpg",
+    "startUrl": "https://casino.microgaming.com/games/mega-moolah"
+  },
+  {
+    "id": "immortal-romance",
+    "title": "Immortal Romance",
+    "provider": "Microgaming",
+    "thumb": "https://casino.microgaming.com/games/immortal-romance/thumb.jpg",
+    "startUrl": "https://casino.microgaming.com/games/immortal-romance"
+  },
+  {
+    "id": "wolf-gold",
+    "title": "Wolf Gold",
+    "provider": "Pragmatic Play",
+    "thumb": "https://demogamesfree.pragmaticplay.net/gs2c/openGame.do?gameSymbol=vs20wolfgold&websiteUrl=https%3A%2F%2Fwww.pragmaticplay.com",
+    "startUrl": "https://demogamesfree.pragmaticplay.net/gs2c/openGame.do?gameSymbol=vs20wolfgold"
+  },
+  {
+    "id": "sweet-bonanza",
+    "title": "Sweet Bonanza",
+    "provider": "Pragmatic Play",
+    "thumb": "https://demogamesfree.pragmaticplay.net/gs2c/openGame.do?gameSymbol=vs20fruitsw&websiteUrl=https%3A%2F%2Fwww.pragmaticplay.com",
+    "startUrl": "https://demogamesfree.pragmaticplay.net/gs2c/openGame.do?gameSymbol=vs20fruitsw"
+  },
+  {
+    "id": "big-bass-bonanza",
+    "title": "Big Bass Bonanza",
+    "provider": "Pragmatic Play",
+    "thumb": null,
+    "startUrl": "https://demogamesfree.pragmaticplay.net/gs2c/openGame.do?gameSymbol=vs10bbbonanza"
+  },
+  {
+    "id": "gates-of-olympus",
+    "title": "Gates of Olympus",
+    "provider": "Pragmatic Play",
+    "thumb": null,
+    "startUrl": "https://demogamesfree.pragmaticplay.net/gs2c/openGame.do?gameSymbol=vs20olympgate"
+  }
+]
