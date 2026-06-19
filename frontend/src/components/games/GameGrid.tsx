@@ -4,9 +4,10 @@ import { GameCard } from './GameCard';
 interface GameGridProps {
   games: Game[];
   onGameClick: (game: Game) => void;
+  showFavorite?: boolean;
 }
 
-export function GameGrid({ games, onGameClick }: GameGridProps) {
+export function GameGrid({ games, onGameClick, showFavorite = false }: GameGridProps) {
   if (games.length === 0) {
     return (
       <div className="text-center py-12">
@@ -18,7 +19,12 @@ export function GameGrid({ games, onGameClick }: GameGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {games.map((game) => (
-        <GameCard key={game.id} game={game} onClick={() => onGameClick(game)} />
+        <GameCard
+          key={game.id}
+          game={game}
+          onClick={() => onGameClick(game)}
+          showFavorite={showFavorite}
+        />
       ))}
     </div>
   );

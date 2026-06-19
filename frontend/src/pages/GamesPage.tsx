@@ -69,7 +69,11 @@ export default function GamesPage() {
 
       {data && (
         <>
-          <GameGrid games={data.data} onGameClick={handleGameClick} />
+          <GameGrid
+            games={data.data}
+            onGameClick={handleGameClick}
+            showFavorite={!!user}
+          />
           <div className="mt-8">
             <GamePagination
               currentPage={currentPage}

@@ -1,19 +1,28 @@
 import type { Game } from '../../api/games';
+import { FavoriteButton } from './FavoriteButton';
 
 interface GameCardProps {
   game: Game;
   onClick: () => void;
+  showFavorite?: boolean;
 }
 
-export function GameCard({ game, onClick }: GameCardProps) {
+export function GameCard({ game, onClick, showFavorite = false }: GameCardProps) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       aria-label={`Play ${game.title} by ${game.providerName}`}
-      className="w-full text-left bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+      className="w-full text-left bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 cursor-pointer"
     >
-      <div className="aspect-video w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg overflow-hidden">
+      <div className="relative aspect-video w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg overflow-hidden">
         {game.thumbnailUrl ? (
           <img
             src={game.thumbnailUrl}
@@ -23,6 +32,15 @@ export function GameCard({ game, onClick }: GameCardProps) {
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
             No image
+          </div>
+        )}
+        {showFavorite && (
+          <div className="absolute top-2 right-2">
+            <FavoriteButton
+              gameId={game.id}
+              gameTitle={game.title}
+              isFavorite={game.isFavorite}
+            />
           </div>
         )}
       </div>
@@ -39,6 +57,6 @@ export function GameCard({ game, onClick }: GameCardProps) {
           {game.providerName}
         </p>
       </div>
-    </button>
+    </div>
   );
 }

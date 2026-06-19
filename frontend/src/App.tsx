@@ -6,6 +6,7 @@ import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import GamesPage from './pages/GamesPage';
+import SlotMachinePage from './pages/SlotMachinePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ function App() {
               }
             >
               <Route path="/games" element={<GamesPage />} />
+              <Route path="/slot-machine/:gameSlug" element={<SlotMachinePage />} />
             </Route>
             <Route path="/" element={<Navigate to="/games" replace />} />
           </Routes>
