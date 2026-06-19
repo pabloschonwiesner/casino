@@ -6,10 +6,12 @@ const prisma = new PrismaClient();
 
 interface GameData {
   id: string;
+  externalId: string;
+  slug: string;
   title: string;
-  provider: string;
-  thumb: string | null;
-  startUrl: string;
+  providerName: string;
+  thumb: { url: string | null } | null;
+  startUrl: string | null;
 }
 
 async function main() {
@@ -165,7 +167,7 @@ async function seedGames() {
   const gameDataPath = path.join(__dirname, 'game-data.json');
   const gameDataJson = fs.readFileSync(gameDataPath, 'utf-8');
   const gameData: GameData[] = JSON.parse(gameDataJson);
-
+  
   const slotGameType = await prisma.gameType.findUnique({
     where: { code: 'slot' },
   });
@@ -175,7 +177,7 @@ async function seedGames() {
   }
 
   for (const game of gameData) {
-    const slug = game.id;
+    const slug = game.slug;
 
     await prisma.game.upsert({
       where: { externalId: game.id },
@@ -184,8 +186,8 @@ async function seedGames() {
         externalId: game.id,
         slug: slug,
         title: game.title,
-        providerName: game.provider,
-        thumbnailUrl: game.thumb,
+        providerName: game.providerName,
+        thumbnailUrl: game.thumb?.url,
         startUrl: game.startUrl,
         gameTypeId: slotGameType.id,
         isActive: true,
