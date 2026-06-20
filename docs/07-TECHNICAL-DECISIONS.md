@@ -1,60 +1,399 @@
-# Skivori Casino — Technical Decisions
+# 07 — Technical Decisions
 
-This document records the main technical decisions made for the Skivori Casino MVP.
+This document records the technical decisions made for the Skivori Casino fullstack assessment.
 
-The goal is not to document every small implementation detail, but to make the architecture, trade-offs, and assessment-driven choices explicit and reviewable.
+It intentionally keeps a detailed decision log because the project follows a light SDD / AI-assisted development workflow.
+
 
 ---
 
-## TD-001 — Use a Monorepo
+
+## Decision Index
+
+- TD-001 — Use a monorepo structure
+- TD-002 — Deploy the MVP on Render
+- TD-003 — Use React with Vite for the frontend
+- TD-004 — Use NestJS for the backend
+- TD-005 — Use PostgreSQL as the primary database
+- TD-006 — Use Prisma as ORM
+- TD-007 — Use TypeScript across frontend and backend
+- TD-008 — Store JWT in HttpOnly cookies
+- TD-009 — Authenticate the user after registration
+- TD-010 — Use one shared slot engine for all games
+- TD-011 — Treat selected game as visual slot context
+- TD-012 — Use slug in routes and ID in persistence
+- TD-013 — Use backend-owned game search
+- TD-014 — Debounce frontend game search
+- TD-015 — Cache public catalog responses
+- TD-016 — Order authenticated catalog with favorites first
+- TD-017 — Use a normalized relational schema
+- TD-018 — Seed games from game-data.json
+- TD-019 — Assign imported games to the Slot game type
+- TD-020 — Seed initial countries and currencies
+- TD-021 — Use virtual coins instead of real money
+- TD-022 — Define 1 coin as 1 USD
+- TD-023 — Keep currency conversion display-only
+- TD-024 — Protect slot gameplay behind authentication
+- TD-025 — Persist every slot spin
+- TD-026 — Use decimal money values
+- TD-027 — Apply endpoint-specific rate limiting
+- TD-028 — Use conditional balance updates for spins
+- TD-029 — Store spin balance before and after
+- TD-030 — Use a paytable lookup for slot payouts
+- TD-031 — Use consecutive-left matching only
+- TD-032 — Do not make slot wins cumulative
+- TD-033 — Use fixed allowed bet values
+- TD-034 — Perform currency conversion on the backend
+- TD-035 — Cache exchange rates
+- TD-036 — Use route /games for the catalog
+- TD-037 — Use route /slot-machine/:gameSlug for gameplay
+- TD-038 — Redirect guests to login with redirectTo
+- TD-039 — Validate redirectTo before navigation
+- TD-040 — Use React Router for frontend routes
+- TD-041 — Use TanStack Query for server state
+- TD-042 — Use local UI state for search and pagination
+- TD-043 — Do not sync catalog search to URL params
+- TD-044 — Use shadcn-compatible Tailwind styling
+- TD-045 — Use mobile-first responsive UI
+- TD-046 — Use system-preference dark mode
+- TD-047 — Do not add manual ThemeToggle
+- TD-048 — Use Tailwind darkMode media
+- TD-049 — Normalize emails
+- TD-050 — Return endpoint-specific success shapes
+- TD-051 — Use consistent error response semantics
+- TD-052 — Use endpoint-specific success shapes
+- TD-053 — Use DTO ValidationPipe
+- TD-054 — Use global ValidationPipe whitelist
+- TD-055 — Forbid non-whitelisted request fields
+- TD-056 — Transform validated query parameters
+- TD-057 — Use class-validator DTOs
+- TD-058 — Use class-transformer for numeric query params
+- TD-059 — Use safe user-facing error messages
+- TD-060 — Do not expose password hashes
+- TD-061 — Use bcryptjs for password hashing
+- TD-062 — Use a starting balance constant
+- TD-063 — Use country-selected registration
+- TD-064 — Derive preferred currency from selected country
+- TD-065 — Expose countries during authentication
+- TD-066 — Delay currencies endpoint until conversion task
+- TD-067 — Use HttpOnly access_token cookie name
+- TD-068 — Use SameSite=Lax for auth cookie
+- TD-069 — Use Secure cookies in production
+- TD-070 — Use ConfigService for runtime configuration
+- TD-071 — Keep JWT payload minimal
+- TD-072 — Use JWT expiration of one day
+- TD-073 — Use logout as idempotent cookie clear
+- TD-074 — Redirect logout to games on frontend
+- TD-075 — Use eight business tables
+- TD-076 — Use UUIDs for primary domain entities
+- TD-077 — Use natural keys for countries and currencies
+- TD-078 — Use composite keys for join tables
+- TD-079 — Use createdAt and updatedAt on main tables
+- TD-080 — Use createdAt only on join/history tables
+- TD-081 — Make spin history append-only
+- TD-082 — Store slot symbols in explicit reel fields
+- TD-083 — Store reel_result_key for quick inspection
+- TD-084 — Use check constraints for numeric invariants
+- TD-085 — Use indexes for lookup and join paths
+- TD-086 — Return Decimal values as strings
+- TD-087 — Use Prisma Decimal for backend money values
+- TD-088 — Use DECIMAL(12,2) for balances and amounts
+- TD-089 — Use DECIMAL precision for exchange rates
+- TD-090 — Use nullable thumbnail_url
+- TD-091 — Use nullable start_url
+- TD-092 — Keep startUrl out of catalog list responses
+- TD-093 — Expose startUrl only in game detail
+- TD-094 — Use is_active for games
+- TD-095 — Use game availability through game_countries
+- TD-096 — Use user_favorite_games as many-to-many table
+- TD-097 — Use spin_history for gameplay audit
+- TD-098 — Use relation names aligned with Prisma
+- TD-099 — Use Prisma migrations as schema source
+- TD-100 — Manually edit migration SQL for CHECK constraints
+- TD-101 — Use idempotent seed scripts
+- TD-102 — Split seed data by domain
+- TD-103 — Seed currencies before countries
+- TD-104 — Seed countries before users
+- TD-105 — Seed game types before games
+- TD-106 — Seed game availability after games
+- TD-107 — Use external_id to map JSON games
+- TD-108 — Use slug as public game identifier
+- TD-109 — Use title and providerName for search
+- TD-110 — Use flag URL as derived frontend/API field
+- TD-111 — Use GameDto as compact catalog contract
+- TD-112 — Use GameDetailDto for detail contract
+- TD-113 — Use PaginatedResponse for list endpoints
+- TD-114 — Use page and limit pagination
+- TD-115 — Use page default 1
+- TD-116 — Use limit default 20
+- TD-117 — Use limit max 50
+- TD-118 — Return totalPages 0 when total is 0
+- TD-119 — Return empty data for valid out-of-range pages
+- TD-120 — Reject invalid page values
+- TD-121 — Reject invalid limit values
+- TD-122 — Trim q before searching
+- TD-123 — Treat empty q as no search
+- TD-124 — Limit q length to 100
+- TD-125 — Search title and providerName only
+- TD-126 — Use Prisma contains insensitive search
+- TD-127 — Avoid raw SQL search construction
+- TD-128 — Use guest catalog without country filtering
+- TD-129 — Use authenticated catalog filtered by user country
+- TD-130 — Return isFavorite false for guests
+- TD-131 — Derive isFavorite for authenticated users
+- TD-132 — Use title ASC ordering for guests
+- TD-133 — Use favorite-first then title ASC for authenticated users
+- TD-134 — Cache only guest catalog responses
+- TD-135 — Do not cache authenticated catalog responses
+- TD-136 — Use 60 second public catalog cache TTL
+- TD-137 — Do not manually invalidate public catalog cache
+- TD-138 — Do not cache game detail responses
+- TD-139 — Implement correct favorite-first pagination with Prisma
+- TD-140 — Implement authentication as a vertical slice
+- TD-141 — Use bcryptjs
+- TD-142 — Use JWT expiration of one day
+- TD-143 — Use minimal JWT payload
+- TD-144 — Use access_token cookie
+- TD-145 — Return success response on logout
+- TD-146 — Redirect logout to /games
+- TD-147 — Preserve redirectTo after login
+- TD-148 — Validate redirectTo before use
+- TD-149 — Use AuthProvider on frontend
+- TD-150 — Call GET /auth/me on app startup
+- TD-151 — ProtectedRoute waits for auth loading
+- TD-152 — Use redirect helper for safe auth navigation
+- TD-153 — Load countries for registration
+- TD-154 — Block registration if countries cannot load
+- TD-155 — RegisterDto derives currency server-side
+- TD-156 — Use LoginDto
+- TD-157 — Return 401 for invalid login
+- TD-158 — Return 409 for duplicate email
+- TD-159 — Return 400 for invalid country
+- TD-160 — Return 201 for register
+- TD-161 — Return 200 for login
+- TD-162 — Use standard HTTP status codes
+- TD-163 — Use consistent AuthResponse
+- TD-164 — Treat auth/me 401 as guest on frontend
+- TD-165 — Make logout idempotent
+- TD-166 — Use JwtAuthGuard and JWT strategy
+- TD-167 — Use minimal AuthenticatedUser type
+- TD-168 — Use CurrentUser decorator
+- TD-169 — Protect auth/me with JwtAuthGuard
+- TD-170 — Use AuthCookieService with passthrough response
+- TD-171 — Use ConfigService
+- TD-172 — Use SameSite Lax with production Secure cookie
+- TD-173 — Centralize auth cookie constant
+- TD-174 — Keep auth mapper private
+- TD-175 — Use decimal helper for API strings
+- TD-176 — Defer tests to TASK-012
+- TD-177 — Use a basic navbar
+- TD-178 — Use a shared layout
+- TD-179 — Redirect root to /games
+- TD-180 — Use temporary placeholders for future pages
+- TD-181 — Use a temporary protected route link
+- TD-182 — Expose GET /countries during auth task
+- TD-183 — Cache countries on backend/frontend
+- TD-184 — Defer GET /currencies
+- TD-185 — Countries response includes currencyCode only
+- TD-186 — Do not add balance endpoint in auth task
+- TD-187 — Keep UsersService internal initially
+- TD-188 — Use initial balance constant
+- TD-189 — Add authenticated user to request
+- TD-190 — Validate RegisterDto password
+- TD-191 — Validate country code format and existence
+- TD-192 — Reject lowercase countryIso2
+- TD-193 — Create normalizeEmail utility
+- TD-194 — Trim email frontend and normalize backend
+- TD-195 — Validate frontend password with Zod
+- TD-196 — Use confirmPassword only on frontend
+- TD-197 — Preserve redirect intent
+- TD-198 — Redirect authenticated users away from auth pages
+- TD-199 — Use minimal auth UI
+- TD-200 — Finalize auth state behavior
+- TD-201 — Implement game catalog as vertical slice
+- TD-202 — Use optional auth for catalog
+- TD-203 — Create OptionalJwtAuthGuard
+- TD-204 — Reuse CurrentUser for optional auth
+- TD-205 — Use compact GameDto
+- TD-206 — Expose startUrl only in detail
+- TD-207 — Return 404 for unavailable game detail
+- TD-208 — Use generic Game not found message
+- TD-209 — Define catalog ordering
+- TD-210 — Trim empty q
+- TD-211 — Validate page
+- TD-212 — Validate limit
+- TD-213 — Return totalPages 0 if empty
+- TD-214 — Return empty 200 for out-of-range page
+- TD-215 — Create GetGamesQueryDto
+- TD-216 — Limit q max length 100
+- TD-217 — Use ILIKE-like Prisma behavior
+- TD-218 — Use Prisma contains and no raw SQL
+- TD-219 — Cache only public catalog
+- TD-220 — Use local in-memory GamesService cache
+- TD-221 — Use TTL-only cache expiration
+- TD-222 — Do not cache detail
+- TD-223 — Include auth state in games query key
+- TD-224 — Use 30 second frontend staleTime
+- TD-225 — Reset page on debounced search
+- TD-226 — Omit empty q from frontend requests
+- TD-227 — Trim debounced search value
+- TD-228 — Keep previous results while fetching
+- TD-229 — Use thumbnail fallback
+- TD-230 — Display provider name
+- TD-231 — Prepare favorite state without UI
+- TD-232 — Implement favorite-first backend before UI
+- TD-233 — Guest game click redirects to login
+- TD-234 — Authenticated game click opens slot route
+- TD-235 — Keep SlotMachinePage placeholder
+- TD-236 — Implement game detail before slot uses it
+- TD-237 — Validate slug
+- TD-238 — Create GetGameBySlugParamsDto
+- TD-239 — Use games resource files
+- TD-240 — Split frontend games components
+- TD-241 — Create gamesApi client
+- TD-242 — Make GameGrid presentational
+- TD-243 — Make GameCard clickable
+- TD-244 — Make GameSearchInput presentational
+- TD-245 — Create GamePagination
+- TD-246 — Use fixed page size 20
+- TD-247 — Show result counter
+- TD-248 — Use contextual empty states
+- TD-249 — Add retry error state
+- TD-250 — Separate initial loading and updating states
+- TD-251 — Keep previous results behavior
+- TD-252 — Keep search/page state local
+- TD-253 — Do not prefetch pages
+- TD-254 — Add clear search action
+- TD-255 — Use onClear prop
+- TD-256 — Create useDebounce hook
+- TD-257 — Preserve active search during pagination
+- TD-258 — Show Game Type as a Simple Badge
+- TD-259 — Use card click as the only GameCard action
+- TD-260 — Use a button element for clickable game cards
+- TD-261 — Include accessibility and dark mode support in the game catalog
+- TD-262 — Use browser/system preference for dark mode
+- TD-263 — Configure Tailwind dark mode with system preference
+- TD-264 — Include accessibility and dark mode checks in catalog acceptance criteria
+- TD-265 — Add manual accessibility validation for the game catalog
+- TD-266 — Define the final acceptance state for game catalog and search
+- TD-267 — Implement favorites as a dedicated vertical slice
+- TD-268 — Make favorite and unfavorite actions idempotent
+- TD-269 — Return 404 for games that cannot be favorited
+- TD-270 — Invalidate game catalog queries after favorite changes
+- TD-271 — Show favorite UI only to authenticated users
+- TD-272 — Keep favorite button accessible
+- TD-273 — Implement slot machine as a protected vertical slice
+- TD-274 — Use a shared slot engine for all games
+- TD-275 — Load selected game detail in SlotMachinePage
+- TD-276 — Validate game availability before spinning
+- TD-277 — Use exact allowed bet amounts
+- TD-278 — Deduct bet before applying winnings
+- TD-279 — Persist every spin as append-only history
+- TD-280 — Use a transactional conditional balance update
+- TD-281 — Use Math.random for MVP slot randomness
+- TD-282 — Return updated balance from spin response
+- TD-283 — Add recent spin history endpoint
+- TD-284 — Update AuthProvider balance after spin
+- TD-285 — Keep slot UI accessible and dark-mode compatible
+- TD-286 — Display slot symbols with emoji and accessible text
+- TD-287 — Keep currency conversion display-only
+- TD-288 — Convert balance on the backend
+- TD-289 — Add GET /currencies for supported currency selection
+- TD-290 — Use one-hour server-side exchange rate cache
+- TD-291 — Place currency conversion UI in SlotMachinePage
+- TD-292 — Require explicit Convert button
+- TD-293 — Return decimal money values as strings
+- TD-294 — Consolidate security hardening in a dedicated task
+- TD-295 — Use Helmet for security headers
+- TD-296 — Restrict CORS by environment
+- TD-297 — Use Global ValidationPipe strictly
+- TD-298 — Apply endpoint-specific rate limiting
+- TD-299 — Never log sensitive authentication data
+- TD-300 — Keep error responses safe
+- TD-301 — Document API with Swagger/OpenAPI
+- TD-302 — Use cookie authentication in Swagger
+- TD-303 — Add README API summary
+- TD-304 — Include manual curl examples
+- TD-305 — Focus tests on critical business rules
+- TD-306 — Do not enforce a global coverage threshold
+- TD-307 — Mock external exchange rate API in tests
+- TD-308 — Keep frontend tests component-focused
+- TD-309 — Treat manual accessibility validation as part of done
+- TD-310 — Deploy MVP on Render
+- TD-311 — Deploy frontend as static site
+- TD-312 — Deploy backend as web service
+- TD-313 — Use Prisma migrate deploy in production
+- TD-314 — Include assessment requirement mapping in README
+- TD-315 — Document known limitations honestly
+- TD-316 — Use plural table names and singular code models
+
+---
+
+
+# Foundation and architecture
+
+
+## TD-001 — Use a monorepo structure
 
 ### Decision
 
-Use a monorepo with separate `frontend` and `backend` directories.
+Use a monorepo structure.
 
 ### Reason
 
-The assessment is easier to review when frontend, backend, docs, and task files live in one repository.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
 ### Trade-offs
 
-A monorepo is slightly larger than separate repositories, but it improves discoverability for a technical assessment.
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
 
----
 
-## TD-002 — Use React + Vite for the Frontend
+## TD-002 — Deploy the MVP on Render
 
 ### Decision
 
-Use React with Vite and TypeScript.
+Deploy the MVP on Render.
 
 ### Reason
 
-The assessment allows React or Next.js. React + Vite keeps the frontend simple as a SPA and avoids unnecessary server-side rendering complexity.
+Render provides a simple cloud deployment path for a technical assessment without adding infrastructure complexity.
 
 ### Trade-offs
 
-Next.js would provide more built-in routing and deployment conventions, but Vite is lighter for this MVP.
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
 
----
 
-## TD-003 — Use NestJS for the Backend
+## TD-003 — Use React with Vite for the frontend
 
 ### Decision
 
-Use NestJS with TypeScript for the backend.
+Use React with Vite for the frontend.
 
 ### Reason
 
-NestJS provides a clean modular architecture, controllers, services, guards, DTO validation, dependency injection, and Swagger support.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
 ### Trade-offs
 
-NestJS adds structure and boilerplate, but that structure is useful for a fullstack assessment.
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
 
----
 
-## TD-004 — Use PostgreSQL as the Primary Database
+## TD-004 — Use NestJS for the backend
+
+### Decision
+
+Use NestJS for the backend.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-005 — Use PostgreSQL as the primary database
 
 ### Decision
 
@@ -62,1041 +401,4710 @@ Use PostgreSQL as the primary database.
 
 ### Reason
 
-The assessment requires PostgreSQL and the product needs relational modeling for users, games, countries, favorites, and spin history.
-
----
-
-## TD-005 — Use Prisma as ORM and Migration Tool
-
-### Decision
-
-Use Prisma for schema modeling, migrations, and typed database access.
-
-### Reason
-
-Prisma provides good TypeScript integration and clear migration workflows.
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
 
 ### Trade-offs
 
-Some database constraints may need manual migration SQL, but Prisma remains a good fit for the MVP.
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
 
----
 
-## TD-006 — Seed `game-data.json` into PostgreSQL
-
-### Decision
-
-Import the provided `game-data.json` into the database during seeding.
-
-### Reason
-
-The assessment requires the game list to be served by the backend REST API, not loaded directly by the frontend.
-
----
-
-## TD-007 — Assign Imported Games to a Slot Game Type
+## TD-006 — Use Prisma as ORM
 
 ### Decision
 
-All imported games are assigned to the `slot` game type in the MVP.
+Use Prisma as ORM.
 
 ### Reason
 
-The assessment provides game catalog data but only requires implementation of one Slot Machine game mechanic.
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
 
 ### Trade-offs
 
-This is a simplification. Future versions could support multiple game engines and game types.
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
 
----
 
-## TD-008 — Use Normalized Database Entities
-
-### Decision
-
-Use normalized tables for users, games, game types, countries, currencies, game availability, favorites, and spin history.
-
-### Reason
-
-The assessment asks for normalized database design with primary keys, foreign keys, indexes, and constraints.
-
----
-
-## TD-009 — Store Money Values as Decimal Values and Return Strings in the API
+## TD-007 — Use TypeScript across frontend and backend
 
 ### Decision
 
-Store balances and amounts using decimal database fields and return money values as strings in API responses.
+Use TypeScript across frontend and backend.
 
 ### Reason
 
-This avoids floating-point ambiguity between backend and frontend.
-
----
-
-## TD-010 — Use JWT Stored in an HttpOnly Cookie
-
-### Decision
-
-Store the JWT in an HttpOnly cookie named `access_token`.
-
-### Reason
-
-This avoids storing tokens in localStorage and improves security.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
 ### Trade-offs
 
-Cookie authentication requires CORS credentials configuration and careful production cookie settings.
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
 
----
 
-## TD-011 — Auto-Login After Registration
-
-### Decision
-
-After successful registration, set the auth cookie and return the authenticated user.
-
-### Reason
-
-This reduces friction and keeps the MVP user flow simple.
-
----
-
-## TD-012 — Use Minimal JWT Payload
+## TD-008 — Store JWT in HttpOnly cookies
 
 ### Decision
 
-JWT payload contains minimal user data such as `sub` and `email`.
+Store JWT authentication tokens in an HttpOnly cookie instead of localStorage.
 
 ### Reason
 
-The MVP does not require roles, permissions, or tenant data.
-
----
-
-## TD-013 — Use `SameSite=Lax` for the Auth Cookie
-
-### Decision
-
-Use `SameSite=Lax` for the JWT cookie.
-
-### Reason
-
-This provides a reasonable default for the MVP while supporting normal navigation flows.
-
----
-
-## TD-014 — Use Secure Cookies in Production
-
-### Decision
-
-Set cookie `Secure: true` in production and `Secure: false` in local development.
-
-### Reason
-
-Production deployments use HTTPS, while local development usually runs on HTTP.
-
----
-
-## TD-015 — Use Optional Authentication for Catalog Endpoints
-
-### Decision
-
-`GET /games` and `GET /games/:slug` use optional authentication.
-
-### Reason
-
-Guests can browse the catalog, while authenticated users get country-filtered availability and favorite state.
-
----
-
-## TD-016 — Treat Invalid Optional Auth as Guest Access
-
-### Decision
-
-For optional-auth catalog endpoints, missing, invalid, or expired cookies behave as guest access.
-
-### Reason
-
-The catalog should remain public and resilient even when auth state is unavailable.
-
----
-
-## TD-017 — Use Backend-Owned Search
-
-### Decision
-
-Game search is performed by the backend through `GET /games?q=...`.
-
-### Reason
-
-The assessment explicitly asks for filtering through a dedicated backend REST endpoint.
-
----
-
-## TD-018 — Search by Game Title and Provider Name
-
-### Decision
-
-Catalog search matches both game title and provider name.
-
-### Reason
-
-This makes search more useful while staying simple.
-
----
-
-## TD-019 — Use 500ms Frontend Debounce for Search
-
-### Decision
-
-Debounce catalog search input by 500ms.
-
-### Reason
-
-This reduces unnecessary API calls while preserving responsive UX.
-
----
-
-## TD-020 — Use Pagination for the Catalog
-
-### Decision
-
-`GET /games` supports `page` and `limit`.
-
-### Reason
-
-Pagination demonstrates search optimization and prevents large responses.
-
----
-
-## TD-021 — Cache Public Catalog Responses for 60 Seconds
-
-### Decision
-
-Cache guest catalog responses for 60 seconds on the backend.
-
-### Reason
-
-Public catalog data is safe to cache and demonstrates backend optimization.
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
 
 ### Trade-offs
 
-Authenticated catalog responses are not cached because they depend on user country and favorite state.
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
 
----
 
-## TD-022 — Order Authenticated Catalog Results with Favorites First
-
-### Decision
-
-Authenticated catalog results are ordered by favorite state first, then by title.
-
-### Reason
-
-This makes favorites immediately useful without requiring a separate favorites page.
-
----
-
-## TD-023 — Use a Two-Bucket Prisma Strategy for Favorite-First Pagination
+## TD-009 — Authenticate the user after registration
 
 ### Decision
 
-For authenticated catalog pagination, use Prisma queries to handle favorites and non-favorites as separate buckets when needed.
+Authenticate the user after registration.
 
 ### Reason
 
-This avoids unsafe raw SQL while preserving correct favorite-first pagination.
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
 
 ### Trade-offs
 
-The service logic is slightly more complex, but the query behavior remains explicit and type-safe.
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
 
----
 
-## TD-024 — Hide `startUrl` from Catalog List Responses
-
-### Decision
-
-`startUrl` is returned only by `GET /games/:slug`, not by `GET /games`.
-
-### Reason
-
-The list endpoint should return compact card data. Detail data is available only when needed.
-
----
-
-## TD-025 — Use Slug for Frontend Game Routes and ID for Persistence
+## TD-010 — Use one shared slot engine for all games
 
 ### Decision
 
-Frontend routes use game `slug`, while database writes store internal `gameId`.
+Use one shared Slot Machine engine for all catalog games during the MVP.
 
 ### Reason
 
-Slugs create readable URLs, while IDs provide stable database relationships.
-
----
-
-## TD-026 — Use Full Card Click for Game Selection
-
-### Decision
-
-The full game card is clickable. Do not add a separate Play button during the catalog task.
-
-### Reason
-
-The card has one primary action, so a separate button would duplicate behavior.
-
----
-
-## TD-027 — Implement `GameCard` as a Button
-
-### Decision
-
-Use `<button type="button">` for clickable game cards.
-
-### Reason
-
-The card is an interactive action and should be keyboard accessible by default.
-
----
-
-## TD-028 — Add Accessible Labels and Focus States to Game Cards
-
-### Decision
-
-Game cards include `aria-label`, visible focus states, image alt text, and readable fallback content.
-
-### Reason
-
-The catalog is the main product screen and must be usable with keyboard and assistive technology.
-
----
-
-## TD-029 — Show Game Type as a Simple Badge
-
-### Decision
-
-Display `gameType.name` as a small badge on each game card.
-
-### Reason
-
-The badge makes the game type clear and demonstrates that the frontend uses normalized backend data.
-
----
-
-## TD-030 — Use System-Preference Dark Mode
-
-### Decision
-
-Use Tailwind `darkMode: "media"`.
-
-### Reason
-
-The app respects the user's browser or operating system preference without adding a manual theme toggle.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
 ### Trade-offs
 
-Users cannot manually override the theme inside the app, but the MVP remains simpler.
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
 
----
 
-## TD-031 — Do Not Add a Theme Toggle in the MVP
-
-### Decision
-
-Do not add a manual light/dark theme toggle.
-
-### Reason
-
-The user preference should come from the browser or OS, avoiding extra UI state and localStorage logic.
-
----
-
-## TD-032 — Include Accessibility Checks in Catalog Acceptance Criteria
+## TD-011 — Treat selected game as visual slot context
 
 ### Decision
 
-Catalog acceptance criteria include keyboard accessibility, labels, focus states, readable states, and dark mode readability.
+Treat selected game as visual slot context.
 
 ### Reason
 
-Accessibility should be part of done, not optional polish.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-033 — Add Manual Accessibility Validation
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-012 — Use slug in routes and ID in persistence
 
 ### Decision
 
-Add a manual accessibility checklist to relevant task files.
+Use the public game slug in frontend routes and the internal game ID for database persistence.
 
 ### Reason
 
-Some accessibility and dark mode checks are easier to validate manually in the MVP.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-034 — Implement Favorites as a Dedicated Vertical Slice
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-013 — Use backend-owned game search
 
 ### Decision
 
-Implement favorites after the catalog as `TASK-007-favorites`.
+Use backend-owned game search.
 
 ### Reason
 
-Favorites depend on authentication and catalog response state.
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
 
----
+### Trade-offs
 
-## TD-035 — Use Protected Favorite Endpoints
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-014 — Debounce frontend game search
 
 ### Decision
 
-Favorite and unfavorite endpoints require authentication.
+Debounce frontend game search.
 
 ### Reason
 
-Favorites belong to a user account and cannot be managed by guests.
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
 
----
+### Trade-offs
 
-## TD-036 — Make Favorite and Unfavorite Actions Idempotent
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-015 — Cache public catalog responses
 
 ### Decision
 
-`POST /favorites/:gameId` returns `isFavorite: true` even if the favorite already exists. `DELETE /favorites/:gameId` returns `isFavorite: false` even if the favorite does not exist.
+Cache only public guest catalog responses for a short time-to-live.
 
 ### Reason
 
-Idempotent favorite actions simplify frontend retries and repeated clicks.
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
 
----
+### Trade-offs
 
-## TD-037 — Validate Game Availability Before Favoriting
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-016 — Order authenticated catalog with favorites first
 
 ### Decision
 
-A user can favorite only games that exist, are active, and are available in the user's country.
+Order authenticated catalog with favorites first.
 
 ### Reason
 
-Favorite behavior should match catalog availability rules.
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
 
----
+### Trade-offs
 
-## TD-038 — Hide Favorite UI for Guests
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Product, gameplay, and cross-cutting rules
+
+
+## TD-017 — Use a normalized relational schema
 
 ### Decision
 
-Favorite buttons are shown only to authenticated users.
+Use a normalized relational schema.
 
 ### Reason
 
-Guests cannot favorite games, so showing unavailable controls would be confusing.
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
 
----
+### Trade-offs
 
-## TD-039 — Invalidate Catalog Queries After Favorite Changes
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-018 — Seed games from game-data.json
 
 ### Decision
 
-After favorite or unfavorite succeeds, invalidate `['games']` queries.
+Seed games from game-data.json.
 
 ### Reason
 
-The catalog response contains `isFavorite` and favorite-first ordering, so it should be refreshed after a mutation.
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
 
----
+### Trade-offs
 
-## TD-040 — Keep Favorite Button Accessible
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-019 — Assign imported games to the Slot game type
 
 ### Decision
 
-Favorite buttons use real buttons, `aria-label`, `aria-pressed`, visible focus states, and stop event propagation.
+Assign imported games to the Slot game type.
 
 ### Reason
 
-Favorite controls are interactive elements and must not trigger the game card click accidentally.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-041 — Implement Slot Machine as a Protected Vertical Slice
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-020 — Seed initial countries and currencies
 
 ### Decision
 
-Implement Slot Machine gameplay after catalog and favorites.
+Seed initial countries and currencies.
 
 ### Reason
 
-Slot gameplay depends on authentication, selected game context, balance updates, and persistence.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-042 — Use a Shared Slot Engine for All Games
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-021 — Use virtual coins instead of real money
 
 ### Decision
 
-All catalog games use the same Slot Machine engine in the MVP.
+Use virtual coins instead of real money.
 
 ### Reason
 
-The assessment asks for a slot implementation, not separate gameplay per catalog game.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-043 — Load Selected Game Detail in SlotMachinePage
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-022 — Define 1 coin as 1 USD
 
 ### Decision
 
-`SlotMachinePage` loads selected game context using `GET /games/:slug`.
+Define 1 coin as 1 USD.
 
 ### Reason
 
-The route uses slug, while spin persistence requires the internal `gameId`.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-044 — Validate Game Availability Before Spinning
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-023 — Keep currency conversion display-only
 
 ### Decision
 
-Before spinning, verify the selected game exists, is active, and is available in the user's country.
+Keep currency conversion display-only.
 
 ### Reason
 
-Spin behavior should respect catalog availability rules.
+Currency conversion is required as display-only functionality, and backend ownership protects provider details and consistency.
 
----
+### Trade-offs
 
-## TD-045 — Use Exact Allowed Bet Amounts
+The trade-off is no multi-currency wallet support, but the feature matches the assessment requirement without financial complexity.
+
+
+## TD-024 — Protect slot gameplay behind authentication
 
 ### Decision
 
-Accept only predefined bet amounts from `0.50` to `5.00` in `0.50` increments.
+Protect slot gameplay behind authentication.
 
 ### Reason
 
-This matches the assessment and reduces decimal edge cases.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-046 — Deduct Bet Before Applying Winnings
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-025 — Persist every slot spin
 
 ### Decision
 
-Calculate `netAmount = payoutAmount - betAmount`.
+Persist every slot spin.
 
 ### Reason
 
-The assessment explicitly requires deducting the bet before applying winnings.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-047 — Use Consecutive-From-Left Payout Logic
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-026 — Use decimal money values
 
 ### Decision
 
-Only consecutive matching symbols from reel 1 count for payouts.
+Use decimal money values.
 
 ### Reason
 
-This matches the assessment examples and prevents accidental cumulative wins.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-048 — Treat Two Lemons as No Win
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-027 — Apply endpoint-specific rate limiting
 
 ### Decision
 
-Only three lemons win; two lemons do not win.
+Apply different rate limits to general, authentication, and spin endpoints.
 
 ### Reason
 
-The assessment payout table only defines a payout for three lemons.
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
 
----
+### Trade-offs
 
-## TD-049 — Persist Every Spin as Append-Only History
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-028 — Use conditional balance updates for spins
 
 ### Decision
 
-Every spin creates a permanent `spin_history` record.
+Update user balance with a conditional database operation during spins.
 
 ### Reason
 
-The assessment requires every spin to be persisted with user, game, reels, amounts, balances, and timestamp.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-050 — Use Transactional Conditional Balance Update
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-029 — Store spin balance before and after
 
 ### Decision
 
-Use a Prisma transaction and conditional balance update for spin execution.
+Store spin balance before and after.
 
 ### Reason
 
-This prevents balance race conditions when multiple spin requests happen close together.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-051 — Use `Math.random()` for MVP Reel Selection
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-030 — Use a paytable lookup for slot payouts
 
 ### Decision
 
-Use `Math.random()` for reel symbol selection.
+Represent slot payouts as an explicit paytable lookup rather than scattered conditional logic.
 
 ### Reason
 
-This is a virtual coin technical assessment, not regulated real-money gambling.
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
 
-### Future Improvement
+### Trade-offs
 
-Use cryptographically secure randomness if real-money or regulated gameplay is introduced.
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
 
----
 
-## TD-052 — Return Updated Balance from Spin Response
+## TD-031 — Use consecutive-left matching only
 
 ### Decision
 
-`POST /slots/spin` returns `balanceBefore` and `balanceAfter`.
+Only consecutive symbols from the left side of the reel result count as winning combinations.
 
 ### Reason
 
-The frontend can update the visible balance immediately without an extra balance request.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-053 — Add Recent Spin History Endpoint
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-032 — Do not make slot wins cumulative
 
 ### Decision
 
-Add `GET /slots/history?limit=10`.
+Apply only the highest applicable payout. Wins are not cumulative.
 
 ### Reason
 
-The user should see recent gameplay activity, and this demonstrates persisted spin history.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-054 — Display Slot Symbols with Emoji and Accessible Text
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-033 — Use fixed allowed bet values
 
 ### Decision
 
-Display symbols as emoji plus text labels.
-
-### Mapping
-
-```text
-cherry -> 🍒 Cherry
-lemon -> 🍋 Lemon
-apple -> 🍎 Apple
-banana -> 🍌 Banana
-```
+Use fixed allowed bet values.
 
 ### Reason
 
-Emoji improves the game-like visual experience, while text labels preserve accessibility.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-055 — Keep Currency Conversion Display-Only
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-034 — Perform currency conversion on the backend
 
 ### Decision
 
-Currency conversion does not modify the stored user balance.
-
-### Rule
-
-For the MVP, `1 coin = 1 USD`.
+Perform currency conversion in the backend instead of the frontend.
 
 ### Reason
 
-The assessment asks for display conversion, not multi-currency wallet behavior.
+Currency conversion is required as display-only functionality, and backend ownership protects provider details and consistency.
 
----
+### Trade-offs
 
-## TD-056 — Perform Currency Conversion on the Backend
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-035 — Cache exchange rates
 
 ### Decision
 
-The backend calls the exchange rate provider and performs conversion.
+Cache exchange rates server-side for one hour.
 
 ### Reason
 
-API keys, provider details, validation, and caching should stay on the backend.
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
 
----
+### Trade-offs
 
-## TD-057 — Add `GET /currencies`
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+# Frontend/backend conventions and authentication foundations
+
+
+## TD-036 — Use route /games for the catalog
 
 ### Decision
 
-Add a public endpoint returning supported currencies.
+Use route /games for the catalog.
 
 ### Reason
 
-The frontend needs a reliable source for the conversion selector.
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
 
----
+### Trade-offs
 
-## TD-058 — Cache Exchange Rates for One Hour
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-037 — Use route /slot-machine/:gameSlug for gameplay
 
 ### Decision
 
-Cache USD-to-target exchange rates for 3600 seconds.
+Use route /slot-machine/:gameSlug for gameplay.
 
 ### Reason
 
-Exchange rates do not need to be fetched on every conversion click.
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
 
----
+### Trade-offs
 
-## TD-059 — Convert Only When the User Clicks the Button
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-038 — Redirect guests to login with redirectTo
 
 ### Decision
 
-The frontend does not auto-convert on every currency change. It converts only when the user clicks `Convert balance`.
+Redirect guests to login with redirectTo.
 
 ### Reason
 
-The assessment asks for a button and this avoids unnecessary API calls.
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
 
----
+### Trade-offs
 
-## TD-060 — Place Currency Conversion UI in SlotMachinePage
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-039 — Validate redirectTo before navigation
 
 ### Decision
 
-Place the currency conversion UI inside the Slot Machine page.
+Validate redirectTo before navigation.
 
 ### Reason
 
-The balance is most relevant during gameplay.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-061 — Enable Helmet Globally
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-040 — Use React Router for frontend routes
 
 ### Decision
 
-Enable Helmet in the NestJS backend.
+Use React Router for frontend routes.
 
 ### Reason
 
-Helmet adds common HTTP security headers with minimal implementation cost.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-062 — Restrict CORS by Environment
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-041 — Use TanStack Query for server state
 
 ### Decision
 
-Configure CORS using `FRONTEND_URL` and credentials.
+Use TanStack Query for server state.
 
 ### Reason
 
-The frontend uses cookie authentication, so CORS must allow credentials only from the configured frontend origin.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-063 — Use Strict Global ValidationPipe
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-042 — Use local UI state for search and pagination
 
 ### Decision
 
-Use `whitelist: true`, `forbidNonWhitelisted: true`, and `transform: true`.
+Use local UI state for search and pagination.
 
 ### Reason
 
-This rejects unexpected fields, validates incoming data, and transforms query params into DTO types.
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
 
----
+### Trade-offs
 
-## TD-064 — Apply Endpoint-Specific Rate Limiting
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-043 — Do not sync catalog search to URL params
 
 ### Decision
 
-Use stricter limits for login, register, and slot spin endpoints.
+Do not sync catalog search to URL params.
 
 ### Reason
 
-Auth and spin endpoints are more sensitive than public read endpoints.
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
 
----
+### Trade-offs
 
-## TD-065 — Never Log Sensitive Authentication Data
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-044 — Use shadcn-compatible Tailwind styling
 
 ### Decision
 
-Request logging must not include passwords, JWT tokens, cookies, or sensitive request bodies.
+Use shadcn-compatible Tailwind styling.
 
 ### Reason
 
-Logs are useful for debugging but must not become a security risk.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-066 — Keep Error Responses Safe
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-045 — Use mobile-first responsive UI
 
 ### Decision
 
-Do not expose stack traces, raw database errors, or authentication internals in API responses.
+Use mobile-first responsive UI.
 
 ### Reason
 
-Safe error responses improve security while still giving users actionable feedback.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-067 — Document API with Swagger/OpenAPI
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-046 — Use system-preference dark mode
 
 ### Decision
 
-Expose Swagger documentation at `/api/docs`.
+Support dark mode through the user’s browser or operating system preference.
 
 ### Reason
 
-Swagger gives reviewers an interactive way to inspect and test the backend API.
+The main UI should be usable, readable, and presentable from the MVP, including keyboard and system dark mode support.
 
----
+### Trade-offs
 
-## TD-068 — Use Cookie Authentication in Swagger
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-047 — Do not add manual ThemeToggle
 
 ### Decision
 
-Configure Swagger with cookie auth for `access_token`.
+Do not add a manual theme toggle during the MVP.
 
 ### Reason
 
-The backend uses JWT in HttpOnly cookies, not bearer tokens stored in localStorage.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-069 — Add README API Summary and Curl Examples
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-048 — Use Tailwind darkMode media
 
 ### Decision
 
-Add an API summary table and curl examples using a cookie jar.
+Configure Tailwind with media-based dark mode.
 
 ### Reason
 
-The README should be useful even without opening Swagger, and cookie-based testing needs clear examples.
+The main UI should be usable, readable, and presentable from the MVP, including keyboard and system dark mode support.
 
----
+### Trade-offs
 
-## TD-070 — Focus Tests on Critical Business Rules
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-049 — Normalize emails
 
 ### Decision
 
-Prioritize tests for slot payout rules, balance behavior, authentication, catalog behavior, favorites, and currency conversion.
+Normalize emails.
 
 ### Reason
 
-These areas carry the highest risk and best demonstrate engineering quality.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-071 — Use a Persistent Authenticated Navbar
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-050 — Return endpoint-specific success shapes
 
 ### Decision
 
-Authenticated users see a persistent top navbar with current user, current balance, currency conversion controls, and logout.
+Return endpoint-specific success shapes.
 
 ### Reason
 
-This keeps account actions and balance conversion available on every authenticated page instead of hiding them inside a single screen.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-072 — Keep Request Logging Per Request and Non-Sensitive
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-051 — Use consistent error response semantics
 
 ### Decision
 
-Log every backend request with non-sensitive metadata such as method, path, status code, duration, and userId when available.
+Use consistent error response semantics.
 
 ### Reason
 
-This gives useful observability without exposing passwords, cookies, JWTs, or raw request bodies.
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
 
----
+### Trade-offs
 
-## TD-071 — Do Not Enforce a Global Coverage Threshold
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-052 — Use endpoint-specific success shapes
 
 ### Decision
 
-Do not require a strict global coverage percentage for the MVP.
+Use endpoint-specific success shapes.
 
 ### Reason
 
-Meaningful tests are more valuable than artificial coverage numbers in a technical assessment.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-072 — Mock the External Exchange Rate API in Tests
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-053 — Use DTO ValidationPipe
 
 ### Decision
 
-Tests must not call the real exchange rate provider.
+Use DTO ValidationPipe.
 
 ### Reason
 
-Tests should be deterministic, fast, and independent from external services.
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
 
----
+### Trade-offs
 
-## TD-073 — Keep Frontend Tests Component-Focused
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-054 — Use global ValidationPipe whitelist
 
 ### Decision
 
-Use React Testing Library for component and light page interaction tests.
+Use global ValidationPipe whitelist.
 
 ### Reason
 
-The MVP does not need full browser E2E automation, but key UI behaviors should still be verified.
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
 
----
+### Trade-offs
 
-## TD-074 — Treat Manual Accessibility Validation as Part of Done
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-055 — Forbid non-whitelisted request fields
 
 ### Decision
 
-Manual accessibility validation remains part of the completion checklist.
+Forbid non-whitelisted request fields.
 
 ### Reason
 
-Not every accessibility requirement needs automated testing in the MVP, but it should still be validated.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-075 — Deploy the MVP on Render
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-056 — Transform validated query parameters
 
 ### Decision
 
-Use Render for frontend, backend, and PostgreSQL deployment.
+Transform validated query parameters.
 
 ### Reason
 
-Render supports the required cloud deployment with low infrastructure complexity.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-076 — Deploy Frontend as a Static Site
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-057 — Use class-validator DTOs
 
 ### Decision
 
-Deploy the React/Vite frontend as a Render Static Site.
+Use class-validator DTOs.
 
 ### Reason
 
-The frontend is a static SPA and does not require a Node server in production.
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
 
----
+### Trade-offs
 
-## TD-077 — Deploy Backend as a Web Service
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-058 — Use class-transformer for numeric query params
 
 ### Decision
 
-Deploy the NestJS backend as a Render Web Service.
+Use class-transformer for numeric query params.
 
 ### Reason
 
-The backend must expose REST APIs, handle authentication cookies, access PostgreSQL, and integrate with the exchange rate provider.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-078 — Use Prisma Migrate Deploy in Production
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-059 — Use safe user-facing error messages
 
 ### Decision
 
-Run production migrations with `npx prisma migrate deploy`.
+Use safe user-facing error messages.
 
 ### Reason
 
-Production should apply committed migrations, not generate new migrations.
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
 
----
+### Trade-offs
 
-## TD-079 — Include Assessment Requirement Mapping in README
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-060 — Do not expose password hashes
 
 ### Decision
 
-The README must include a table mapping assessment requirements to implementation.
+Do not expose password hashes.
 
 ### Reason
 
-This makes the project easier to review and shows that each requested item was addressed.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-080 — Document Known Limitations Honestly
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-061 — Use bcryptjs for password hashing
 
 ### Decision
 
-The README must include known limitations.
+Use bcryptjs for password hashing.
 
 ### Reason
 
-Clear boundaries make the MVP look intentional and professional.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-081 — Use AI-Assisted Light SDD Workflow
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-062 — Use a starting balance constant
 
 ### Decision
 
-Use a lightweight SDD-style documentation and task breakdown process with AI assistance.
+Use a starting balance constant.
 
 ### Reason
 
-This demonstrates intentional planning and controlled AI usage without overbuilding documentation.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-082 — Include AI Usage Disclosure
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-063 — Use country-selected registration
 
 ### Decision
 
-Include `docs/06-AI-USAGE-DISCLOSURE.md`.
+Use country-selected registration.
 
 ### Reason
 
-The assessment allows AI usage and asks for transparent disclosure.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
 
----
+### Trade-offs
 
-## TD-083 — Use Task Files as Implementation Contracts
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-064 — Derive preferred currency from selected country
 
 ### Decision
 
-Each task file defines scope, out-of-scope items, API behavior, frontend behavior, validation, accessibility, acceptance criteria, and suggested commit.
+Derive preferred currency from selected country.
 
 ### Reason
 
-Task files make the AI-assisted development process repeatable and controlled.
+Currency conversion is required as display-only functionality, and backend ownership protects provider details and consistency.
 
----
+### Trade-offs
 
-## TD-084 — Keep the MVP Free of Real-Money Gambling Features
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-065 — Expose countries during authentication
 
 ### Decision
 
-Do not include deposits, withdrawals, payments, or real-money gambling mechanics.
+Expose countries during authentication.
 
 ### Reason
 
-The assessment is about a technical fullstack implementation using virtual coins.
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
 
----
+### Trade-offs
 
-## TD-085 — Keep MVP Boundaries Explicit
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-066 — Delay currencies endpoint until conversion task
 
 ### Decision
 
-Document intentionally excluded features such as admin panel, OAuth, refresh token rotation, custom slot engines, CI/CD, and full E2E browser automation.
+Delay currencies endpoint until conversion task.
 
 ### Reason
 
-Explicit scope boundaries make the project easier to review and defend.
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-067 — Use HttpOnly access_token cookie name
+
+### Decision
+
+Use HttpOnly access_token cookie name.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-068 — Use SameSite=Lax for auth cookie
+
+### Decision
+
+Use SameSite=Lax for auth cookie.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-069 — Use Secure cookies in production
+
+### Decision
+
+Use Secure cookies in production.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-070 — Use ConfigService for runtime configuration
+
+### Decision
+
+Use ConfigService for runtime configuration.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-071 — Keep JWT payload minimal
+
+### Decision
+
+Keep JWT payload minimal.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-072 — Use JWT expiration of one day
+
+### Decision
+
+Use JWT expiration of one day.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-073 — Use logout as idempotent cookie clear
+
+### Decision
+
+Use logout as idempotent cookie clear.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-074 — Redirect logout to games on frontend
+
+### Decision
+
+Redirect logout to games on frontend.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Database, seed, catalog contracts, and data access
+
+
+## TD-075 — Use eight business tables
+
+### Decision
+
+Use eight main business tables: currencies, countries, users, game_types, games, game_countries, user_favorite_games, and spin_history.
+
+### Reason
+
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-076 — Use UUIDs for primary domain entities
+
+### Decision
+
+Use UUIDs for primary domain entities.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-077 — Use natural keys for countries and currencies
+
+### Decision
+
+Use natural keys for countries and currencies.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-078 — Use composite keys for join tables
+
+### Decision
+
+Use composite keys for join tables.
+
+### Reason
+
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-079 — Use createdAt and updatedAt on main tables
+
+### Decision
+
+Use createdAt and updatedAt on main tables.
+
+### Reason
+
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-080 — Use createdAt only on join/history tables
+
+### Decision
+
+Use createdAt only on join/history tables.
+
+### Reason
+
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-081 — Make spin history append-only
+
+### Decision
+
+Make spin history append-only.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-082 — Store slot symbols in explicit reel fields
+
+### Decision
+
+Store slot symbols in explicit reel fields.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-083 — Store reel_result_key for quick inspection
+
+### Decision
+
+Store reel_result_key for quick inspection.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-084 — Use check constraints for numeric invariants
+
+### Decision
+
+Use check constraints for numeric invariants.
+
+### Reason
+
+The main UI should be usable, readable, and presentable from the MVP, including keyboard and system dark mode support.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-085 — Use indexes for lookup and join paths
+
+### Decision
+
+Use indexes for lookup and join paths.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-086 — Return Decimal values as strings
+
+### Decision
+
+Return decimal money values as strings in API responses.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-087 — Use Prisma Decimal for backend money values
+
+### Decision
+
+Use Prisma Decimal for backend money values.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+## TD-088 — Use DECIMAL(12,2) for balances and amounts
+
+### Decision
+
+Use DECIMAL(12,2) for balances and amounts.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-089 — Use DECIMAL precision for exchange rates
+
+### Decision
+
+Use DECIMAL precision for exchange rates.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-090 — Use nullable thumbnail_url
+
+### Decision
+
+Use nullable thumbnail_url.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-091 — Use nullable start_url
+
+### Decision
+
+Use nullable start_url.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-092 — Keep startUrl out of catalog list responses
+
+### Decision
+
+Keep startUrl out of catalog list responses.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-093 — Expose startUrl only in game detail
+
+### Decision
+
+Expose startUrl only in game detail.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-094 — Use is_active for games
+
+### Decision
+
+Use is_active for games.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-095 — Use game availability through game_countries
+
+### Decision
+
+Use game availability through game_countries.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-096 — Use user_favorite_games as many-to-many table
+
+### Decision
+
+Use user_favorite_games as many-to-many table.
+
+### Reason
+
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-097 — Use spin_history for gameplay audit
+
+### Decision
+
+Use spin_history for gameplay audit.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-098 — Use relation names aligned with Prisma
+
+### Decision
+
+Use relation names aligned with Prisma.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+## TD-099 — Use Prisma migrations as schema source
+
+### Decision
+
+Treat Prisma migrations as the executable source of database evolution.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+## TD-100 — Manually edit migration SQL for CHECK constraints
+
+### Decision
+
+Manually edit generated migration SQL when PostgreSQL CHECK constraints are required.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-101 — Use idempotent seed scripts
+
+### Decision
+
+Use idempotent seed scripts.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-102 — Split seed data by domain
+
+### Decision
+
+Split seed data by domain.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-103 — Seed currencies before countries
+
+### Decision
+
+Seed currencies before countries.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-104 — Seed countries before users
+
+### Decision
+
+Seed countries before users.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-105 — Seed game types before games
+
+### Decision
+
+Seed game types before games.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-106 — Seed game availability after games
+
+### Decision
+
+Seed game availability after games.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-107 — Use external_id to map JSON games
+
+### Decision
+
+Use external_id to map JSON games.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-108 — Use slug as public game identifier
+
+### Decision
+
+Use slug as public game identifier.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-109 — Use title and providerName for search
+
+### Decision
+
+Use title and providerName for search.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-110 — Use flag URL as derived frontend/API field
+
+### Decision
+
+Use flag URL as derived frontend/API field.
+
+### Reason
+
+Clear documentation makes the project easier to evaluate, run, and defend in a technical review.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-111 — Use GameDto as compact catalog contract
+
+### Decision
+
+Use GameDto as compact catalog contract.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-112 — Use GameDetailDto for detail contract
+
+### Decision
+
+Use GameDetailDto for detail contract.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-113 — Use PaginatedResponse for list endpoints
+
+### Decision
+
+Use PaginatedResponse for list endpoints.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-114 — Use page and limit pagination
+
+### Decision
+
+Use page and limit pagination.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-115 — Use page default 1
+
+### Decision
+
+Use page default 1.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-116 — Use limit default 20
+
+### Decision
+
+Use limit default 20.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-117 — Use limit max 50
+
+### Decision
+
+Use limit max 50.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-118 — Return totalPages 0 when total is 0
+
+### Decision
+
+Return totalPages 0 when total is 0.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-119 — Return empty data for valid out-of-range pages
+
+### Decision
+
+Return empty data for valid out-of-range pages.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-120 — Reject invalid page values
+
+### Decision
+
+Reject invalid page values.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-121 — Reject invalid limit values
+
+### Decision
+
+Reject invalid limit values.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-122 — Trim q before searching
+
+### Decision
+
+Trim q before searching.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-123 — Treat empty q as no search
+
+### Decision
+
+Treat empty q as no search.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-124 — Limit q length to 100
+
+### Decision
+
+Limit q length to 100.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-125 — Search title and providerName only
+
+### Decision
+
+Search title and providerName only.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-126 — Use Prisma contains insensitive search
+
+### Decision
+
+Use Prisma contains insensitive search.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+## TD-127 — Avoid raw SQL search construction
+
+### Decision
+
+Avoid raw SQL search construction.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-128 — Use guest catalog without country filtering
+
+### Decision
+
+Use guest catalog without country filtering.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-129 — Use authenticated catalog filtered by user country
+
+### Decision
+
+Use authenticated catalog filtered by user country.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-130 — Return isFavorite false for guests
+
+### Decision
+
+Return isFavorite false for guests.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-131 — Derive isFavorite for authenticated users
+
+### Decision
+
+Derive isFavorite for authenticated users.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-132 — Use title ASC ordering for guests
+
+### Decision
+
+Use title ASC ordering for guests.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-133 — Use favorite-first then title ASC for authenticated users
+
+### Decision
+
+Use favorite-first then title ASC for authenticated users.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-134 — Cache only guest catalog responses
+
+### Decision
+
+Cache only guest catalog responses.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-135 — Do not cache authenticated catalog responses
+
+### Decision
+
+Do not cache authenticated catalog responses.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-136 — Use 60 second public catalog cache TTL
+
+### Decision
+
+Use 60 second public catalog cache TTL.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-137 — Do not manually invalidate public catalog cache
+
+### Decision
+
+Do not manually invalidate public catalog cache.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-138 — Do not cache game detail responses
+
+### Decision
+
+Do not cache game detail responses.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-139 — Implement correct favorite-first pagination with Prisma
+
+### Decision
+
+Use a Prisma-based two-bucket approach for correct favorite-first pagination when needed.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+# Authentication vertical slice
+
+
+## TD-140 — Implement authentication as a vertical slice
+
+### Decision
+
+Implement authentication as a dedicated vertical slice before catalog and gameplay features.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-141 — Use bcryptjs
+
+### Decision
+
+Use bcryptjs.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-142 — Use JWT expiration of one day
+
+### Decision
+
+Use JWT expiration of one day.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-143 — Use minimal JWT payload
+
+### Decision
+
+Use minimal JWT payload.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-144 — Use access_token cookie
+
+### Decision
+
+Use access_token cookie.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-145 — Return success response on logout
+
+### Decision
+
+Return success response on logout.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-146 — Redirect logout to /games
+
+### Decision
+
+Redirect logout to /games.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-147 — Preserve redirectTo after login
+
+### Decision
+
+Preserve redirectTo after login.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-148 — Validate redirectTo before use
+
+### Decision
+
+Validate redirectTo before use.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-149 — Use AuthProvider on frontend
+
+### Decision
+
+Use AuthProvider on frontend.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-150 — Call GET /auth/me on app startup
+
+### Decision
+
+Call GET /auth/me on app startup.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-151 — ProtectedRoute waits for auth loading
+
+### Decision
+
+ProtectedRoute waits for auth loading.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-152 — Use redirect helper for safe auth navigation
+
+### Decision
+
+Use redirect helper for safe auth navigation.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-153 — Load countries for registration
+
+### Decision
+
+Load countries for registration.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-154 — Block registration if countries cannot load
+
+### Decision
+
+Block registration if countries cannot load.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-155 — RegisterDto derives currency server-side
+
+### Decision
+
+RegisterDto derives currency server-side.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-156 — Use LoginDto
+
+### Decision
+
+Use LoginDto.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-157 — Return 401 for invalid login
+
+### Decision
+
+Return 401 for invalid login.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-158 — Return 409 for duplicate email
+
+### Decision
+
+Return 409 for duplicate email.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-159 — Return 400 for invalid country
+
+### Decision
+
+Return 400 for invalid country.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-160 — Return 201 for register
+
+### Decision
+
+Return 201 for register.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-161 — Return 200 for login
+
+### Decision
+
+Return 200 for login.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-162 — Use standard HTTP status codes
+
+### Decision
+
+Use standard HTTP status codes.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-163 — Use consistent AuthResponse
+
+### Decision
+
+Use consistent AuthResponse.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-164 — Treat auth/me 401 as guest on frontend
+
+### Decision
+
+Treat auth/me 401 as guest on frontend.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-165 — Make logout idempotent
+
+### Decision
+
+Make logout idempotent.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-166 — Use JwtAuthGuard and JWT strategy
+
+### Decision
+
+Use JwtAuthGuard and JWT strategy.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-167 — Use minimal AuthenticatedUser type
+
+### Decision
+
+Use minimal AuthenticatedUser type.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-168 — Use CurrentUser decorator
+
+### Decision
+
+Use CurrentUser decorator.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-169 — Protect auth/me with JwtAuthGuard
+
+### Decision
+
+Protect auth/me with JwtAuthGuard.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-170 — Use AuthCookieService with passthrough response
+
+### Decision
+
+Use AuthCookieService with passthrough response.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-171 — Use ConfigService
+
+### Decision
+
+Use ConfigService.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-172 — Use SameSite Lax with production Secure cookie
+
+### Decision
+
+Use SameSite Lax with production Secure cookie.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-173 — Centralize auth cookie constant
+
+### Decision
+
+Centralize auth cookie constant.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-174 — Keep auth mapper private
+
+### Decision
+
+Keep auth mapper private.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-175 — Use decimal helper for API strings
+
+### Decision
+
+Use decimal helper for API strings.
+
+### Reason
+
+Clear documentation makes the project easier to evaluate, run, and defend in a technical review.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-176 — Defer tests to TASK-012
+
+### Decision
+
+Defer tests to TASK-012.
+
+### Reason
+
+Focused tests demonstrate quality on the riskiest logic while keeping the assessment scope achievable.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-177 — Use a basic navbar
+
+### Decision
+
+Use a basic navbar.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-178 — Use a shared layout
+
+### Decision
+
+Use a shared layout.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-179 — Redirect root to /games
+
+### Decision
+
+Redirect root to /games.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-180 — Use temporary placeholders for future pages
+
+### Decision
+
+Use temporary placeholders for future pages.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-181 — Use a temporary protected route link
+
+### Decision
+
+Use a temporary protected route link.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-182 — Expose GET /countries during auth task
+
+### Decision
+
+Expose GET /countries during auth task.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-183 — Cache countries on backend/frontend
+
+### Decision
+
+Cache countries on backend/frontend.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-184 — Defer GET /currencies
+
+### Decision
+
+Defer GET /currencies.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-185 — Countries response includes currencyCode only
+
+### Decision
+
+Countries response includes currencyCode only.
+
+### Reason
+
+Currency conversion is required as display-only functionality, and backend ownership protects provider details and consistency.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-186 — Do not add balance endpoint in auth task
+
+### Decision
+
+Do not add balance endpoint in auth task.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-187 — Keep UsersService internal initially
+
+### Decision
+
+Keep UsersService internal initially.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-188 — Use initial balance constant
+
+### Decision
+
+Use initial balance constant.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-189 — Add authenticated user to request
+
+### Decision
+
+Add authenticated user to request.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-190 — Validate RegisterDto password
+
+### Decision
+
+Validate RegisterDto password.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-191 — Validate country code format and existence
+
+### Decision
+
+Validate country code format and existence.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-192 — Reject lowercase countryIso2
+
+### Decision
+
+Reject lowercase countryIso2.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-193 — Create normalizeEmail utility
+
+### Decision
+
+Create normalizeEmail utility.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-194 — Trim email frontend and normalize backend
+
+### Decision
+
+Trim email frontend and normalize backend.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-195 — Validate frontend password with Zod
+
+### Decision
+
+Validate frontend password with Zod.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-196 — Use confirmPassword only on frontend
+
+### Decision
+
+Use confirmPassword only on frontend.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-197 — Preserve redirect intent
+
+### Decision
+
+Preserve redirect intent.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-198 — Redirect authenticated users away from auth pages
+
+### Decision
+
+Redirect authenticated users away from auth pages.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-199 — Use minimal auth UI
+
+### Decision
+
+Use minimal auth UI.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-200 — Finalize auth state behavior
+
+### Decision
+
+Finalize auth state behavior.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Game catalog and search vertical slice
+
+
+## TD-201 — Implement game catalog as vertical slice
+
+### Decision
+
+Implement game catalog as vertical slice.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-202 — Use optional auth for catalog
+
+### Decision
+
+Use optional authentication for game catalog endpoints so guests and authenticated users share the same routes.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-203 — Create OptionalJwtAuthGuard
+
+### Decision
+
+Create an OptionalJwtAuthGuard for catalog endpoints.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-204 — Reuse CurrentUser for optional auth
+
+### Decision
+
+Reuse CurrentUser for optional auth.
+
+### Reason
+
+Authentication must be secure, predictable, and simple enough to support protected gameplay and user-specific data.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-205 — Use compact GameDto
+
+### Decision
+
+Use compact GameDto.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-206 — Expose startUrl only in detail
+
+### Decision
+
+Expose startUrl only in detail.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-207 — Return 404 for unavailable game detail
+
+### Decision
+
+Return 404 for unavailable game detail.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-208 — Use generic Game not found message
+
+### Decision
+
+Use generic Game not found message.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-209 — Define catalog ordering
+
+### Decision
+
+Define catalog ordering.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-210 — Trim empty q
+
+### Decision
+
+Trim empty q.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-211 — Validate page
+
+### Decision
+
+Validate page.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-212 — Validate limit
+
+### Decision
+
+Validate limit.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-213 — Return totalPages 0 if empty
+
+### Decision
+
+Return totalPages 0 if empty.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-214 — Return empty 200 for out-of-range page
+
+### Decision
+
+Return empty 200 for out-of-range page.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-215 — Create GetGamesQueryDto
+
+### Decision
+
+Create GetGamesQueryDto.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-216 — Limit q max length 100
+
+### Decision
+
+Limit q max length 100.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-217 — Use ILIKE-like Prisma behavior
+
+### Decision
+
+Use ILIKE-like Prisma behavior.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+## TD-218 — Use Prisma contains and no raw SQL
+
+### Decision
+
+Use Prisma contains and no raw SQL.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+## TD-219 — Cache only public catalog
+
+### Decision
+
+Cache only public catalog.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-220 — Use local in-memory GamesService cache
+
+### Decision
+
+Use local in-memory GamesService cache.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-221 — Use TTL-only cache expiration
+
+### Decision
+
+Use TTL-only cache expiration.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-222 — Do not cache detail
+
+### Decision
+
+Do not cache detail.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-223 — Include auth state in games query key
+
+### Decision
+
+Include auth state in games query key.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-224 — Use 30 second frontend staleTime
+
+### Decision
+
+Use 30 second frontend staleTime.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-225 — Reset page on debounced search
+
+### Decision
+
+Reset page on debounced search.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-226 — Omit empty q from frontend requests
+
+### Decision
+
+Omit empty q from frontend requests.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-227 — Trim debounced search value
+
+### Decision
+
+Trim debounced search value.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-228 — Keep previous results while fetching
+
+### Decision
+
+Keep previous results while fetching.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-229 — Use thumbnail fallback
+
+### Decision
+
+Use thumbnail fallback.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-230 — Display provider name
+
+### Decision
+
+Display provider name.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-231 — Prepare favorite state without UI
+
+### Decision
+
+Prepare favorite state without UI.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-232 — Implement favorite-first backend before UI
+
+### Decision
+
+Implement favorite-first backend before UI.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-233 — Guest game click redirects to login
+
+### Decision
+
+Guest game click redirects to login.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-234 — Authenticated game click opens slot route
+
+### Decision
+
+Authenticated game click opens slot route.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-235 — Keep SlotMachinePage placeholder
+
+### Decision
+
+Keep SlotMachinePage placeholder.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-236 — Implement game detail before slot uses it
+
+### Decision
+
+Implement game detail before slot uses it.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-237 — Validate slug
+
+### Decision
+
+Validate slug.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-238 — Create GetGameBySlugParamsDto
+
+### Decision
+
+Create GetGameBySlugParamsDto.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-239 — Use games resource files
+
+### Decision
+
+Use games resource files.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-240 — Split frontend games components
+
+### Decision
+
+Split frontend games components.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-241 — Create gamesApi client
+
+### Decision
+
+Create gamesApi client.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-242 — Make GameGrid presentational
+
+### Decision
+
+Make GameGrid presentational.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-243 — Make GameCard clickable
+
+### Decision
+
+Make GameCard clickable.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-244 — Make GameSearchInput presentational
+
+### Decision
+
+Make GameSearchInput presentational.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-245 — Create GamePagination
+
+### Decision
+
+Create GamePagination.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-246 — Use fixed page size 20
+
+### Decision
+
+Use fixed page size 20.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-247 — Show result counter
+
+### Decision
+
+Show result counter.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-248 — Use contextual empty states
+
+### Decision
+
+Use contextual empty states.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-249 — Add retry error state
+
+### Decision
+
+Add retry error state.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-250 — Separate initial loading and updating states
+
+### Decision
+
+Separate initial loading and updating states.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-251 — Keep previous results behavior
+
+### Decision
+
+Keep previous results behavior.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-252 — Keep search/page state local
+
+### Decision
+
+Keep search/page state local.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-253 — Do not prefetch pages
+
+### Decision
+
+Do not prefetch pages.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-254 — Add clear search action
+
+### Decision
+
+Add clear search action.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-255 — Use onClear prop
+
+### Decision
+
+Use onClear prop.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-256 — Create useDebounce hook
+
+### Decision
+
+Create useDebounce hook.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-257 — Preserve active search during pagination
+
+### Decision
+
+Preserve active search during pagination.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-258 — Show Game Type as a Simple Badge
+
+### Decision
+
+Display gameType.name as a simple visual badge on each game card.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-259 — Use card click as the only GameCard action
+
+### Decision
+
+Make the full GameCard clickable and do not add a separate Play button in TASK-006.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-260 — Use a button element for clickable game cards
+
+### Decision
+
+Render GameCard as a semantic button element.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-261 — Include accessibility and dark mode support in the game catalog
+
+### Decision
+
+Include accessibility and dark mode support as part of the game catalog MVP.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-262 — Use browser/system preference for dark mode
+
+### Decision
+
+Use the browser/system preference for dark mode and avoid custom theme state.
+
+### Reason
+
+The main UI should be usable, readable, and presentable from the MVP, including keyboard and system dark mode support.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-263 — Configure Tailwind dark mode with system preference
+
+### Decision
+
+Configure Tailwind dark mode with darkMode: 'media'.
+
+### Reason
+
+The main UI should be usable, readable, and presentable from the MVP, including keyboard and system dark mode support.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-264 — Include accessibility and dark mode checks in catalog acceptance criteria
+
+### Decision
+
+Include accessibility and dark mode checks in catalog acceptance criteria.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-265 — Add manual accessibility validation for the game catalog
+
+### Decision
+
+Add manual accessibility validation for the game catalog.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-266 — Define the final acceptance state for game catalog and search
+
+### Decision
+
+Define the final acceptance state for game catalog and search.
+
+### Reason
+
+The catalog is the main entry point, and backend-owned filtering, pagination, and clear contracts make it reliable and reviewable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Favorites vertical slice
+
+
+## TD-267 — Implement favorites as a dedicated vertical slice
+
+### Decision
+
+Implement favorites as a dedicated vertical slice after catalog.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-268 — Make favorite and unfavorite actions idempotent
+
+### Decision
+
+Make both favorite and unfavorite actions idempotent.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-269 — Return 404 for games that cannot be favorited
+
+### Decision
+
+Return 404 for games that cannot be favorited.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-270 — Invalidate game catalog queries after favorite changes
+
+### Decision
+
+Invalidate game catalog queries after favorite changes.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-271 — Show favorite UI only to authenticated users
+
+### Decision
+
+Show favorite UI only to authenticated users.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-272 — Keep favorite button accessible
+
+### Decision
+
+Keep favorite button accessible.
+
+### Reason
+
+Favorites depend on authenticated users and game catalog state, so the behavior is kept explicit and easy to refresh from backend source of truth.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Slot machine vertical slice
+
+
+## TD-273 — Implement slot machine as a protected vertical slice
+
+### Decision
+
+Implement the Slot Machine as a protected gameplay vertical slice.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-274 — Use a shared slot engine for all games
+
+### Decision
+
+Use a shared slot engine for all games.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-275 — Load selected game detail in SlotMachinePage
+
+### Decision
+
+Load selected game detail in SlotMachinePage.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-276 — Validate game availability before spinning
+
+### Decision
+
+Validate game availability before spinning.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-277 — Use exact allowed bet amounts
+
+### Decision
+
+Use exact allowed bet amounts.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-278 — Deduct bet before applying winnings
+
+### Decision
+
+Deduct the bet first and then apply winnings through netAmount = payoutAmount - betAmount.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-279 — Persist every spin as append-only history
+
+### Decision
+
+Persist every spin as append-only history.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-280 — Use a transactional conditional balance update
+
+### Decision
+
+Use a database transaction and conditional balance update for each spin.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-281 — Use Math.random for MVP slot randomness
+
+### Decision
+
+Use Math.random for MVP slot randomness.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-282 — Return updated balance from spin response
+
+### Decision
+
+Return updated balance from spin response.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-283 — Add recent spin history endpoint
+
+### Decision
+
+Add recent spin history endpoint.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-284 — Update AuthProvider balance after spin
+
+### Decision
+
+Update AuthProvider balance after spin.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-285 — Keep slot UI accessible and dark-mode compatible
+
+### Decision
+
+Keep slot UI accessible and dark-mode compatible.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-286 — Display slot symbols with emoji and accessible text
+
+### Decision
+
+Display slot symbols using emoji plus readable text labels.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Currency conversion vertical slice
+
+
+## TD-287 — Keep currency conversion display-only
+
+### Decision
+
+Keep currency conversion display-only and never modify stored balance.
+
+### Reason
+
+Currency conversion is required as display-only functionality, and backend ownership protects provider details and consistency.
+
+### Trade-offs
+
+The trade-off is no multi-currency wallet support, but the feature matches the assessment requirement without financial complexity.
+
+
+## TD-288 — Convert balance on the backend
+
+### Decision
+
+Convert balance on the backend.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-289 — Add GET /currencies for supported currency selection
+
+### Decision
+
+Add GET /currencies for supported currency selection.
+
+### Reason
+
+Currency conversion is required as display-only functionality, and backend ownership protects provider details and consistency.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-290 — Use one-hour server-side exchange rate cache
+
+### Decision
+
+Use one-hour server-side exchange rate cache.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is potential short-lived staleness in exchange for simpler performance improvement.
+
+
+## TD-291 — Place currency conversion UI in SlotMachinePage
+
+### Decision
+
+Place currency conversion UI in SlotMachinePage.
+
+### Reason
+
+Slot gameplay is the core protected business flow, so the decision keeps the implementation deterministic, auditable, and aligned with the assessment rules.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-292 — Require explicit Convert button
+
+### Decision
+
+Require explicit Convert button.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-293 — Return decimal money values as strings
+
+### Decision
+
+Return decimal money values as strings.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Security hardening
+
+
+## TD-294 — Consolidate security hardening in a dedicated task
+
+### Decision
+
+Create a dedicated security-hardening task to make security controls explicit.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-295 — Use Helmet for security headers
+
+### Decision
+
+Use Helmet for security headers.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-296 — Restrict CORS by environment
+
+### Decision
+
+Restrict CORS by environment.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-297 — Use Global ValidationPipe strictly
+
+### Decision
+
+Use Global ValidationPipe strictly.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-298 — Apply endpoint-specific rate limiting
+
+### Decision
+
+Apply endpoint-specific rate limiting.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-299 — Never log sensitive authentication data
+
+### Decision
+
+Never log sensitive authentication data.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-300 — Keep error responses safe
+
+### Decision
+
+Keep error responses safe.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# API documentation
+
+
+## TD-301 — Document API with Swagger/OpenAPI
+
+### Decision
+
+Expose Swagger/OpenAPI documentation at /api/docs.
+
+### Reason
+
+Clear documentation makes the project easier to evaluate, run, and defend in a technical review.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-302 — Use cookie authentication in Swagger
+
+### Decision
+
+Use cookie authentication in Swagger.
+
+### Reason
+
+Cookie-based authentication reduces exposure of JWTs to client-side JavaScript and keeps the authentication flow close to production practices.
+
+### Trade-offs
+
+The trade-off is slightly more CORS/cookie configuration compared with bearer tokens, but stronger browser-side security.
+
+
+## TD-303 — Add README API summary
+
+### Decision
+
+Add README API summary.
+
+### Reason
+
+Clear documentation makes the project easier to evaluate, run, and defend in a technical review.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-304 — Include manual curl examples
+
+### Decision
+
+Include manual curl examples.
+
+### Reason
+
+Clear documentation makes the project easier to evaluate, run, and defend in a technical review.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Testing strategy
+
+
+## TD-305 — Focus tests on critical business rules
+
+### Decision
+
+Focus automated tests on critical business rules and user interactions.
+
+### Reason
+
+Focused tests demonstrate quality on the riskiest logic while keeping the assessment scope achievable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-306 — Do not enforce a global coverage threshold
+
+### Decision
+
+Do not enforce a global coverage threshold.
+
+### Reason
+
+Focused tests demonstrate quality on the riskiest logic while keeping the assessment scope achievable.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-307 — Mock external exchange rate API in tests
+
+### Decision
+
+Mock external exchange rate API in tests.
+
+### Reason
+
+Security controls are required by the assessment and make the application safer without overbuilding the MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-308 — Keep frontend tests component-focused
+
+### Decision
+
+Keep frontend tests component-focused.
+
+### Reason
+
+Focused tests demonstrate quality on the riskiest logic while keeping the assessment scope achievable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-309 — Treat manual accessibility validation as part of done
+
+### Decision
+
+Treat manual accessibility validation as part of done.
+
+### Reason
+
+Explicit DTO validation protects the API boundary and makes request behavior predictable.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+# Deployment, README, and final conventions
+
+
+## TD-310 — Deploy MVP on Render
+
+### Decision
+
+Deploy the MVP using Render services.
+
+### Reason
+
+Render provides a simple cloud deployment path for a technical assessment without adding infrastructure complexity.
+
+### Trade-offs
+
+The trade-off is reduced feature breadth in exchange for a clearer and more reliable MVP.
+
+
+## TD-311 — Deploy frontend as static site
+
+### Decision
+
+Deploy frontend as static site.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-312 — Deploy backend as web service
+
+### Decision
+
+Deploy backend as web service.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-313 — Use Prisma migrate deploy in production
+
+### Decision
+
+Use Prisma migrate deploy in production.
+
+### Reason
+
+Prisma gives typed database access, migration management, and a clear schema source for PostgreSQL.
+
+### Trade-offs
+
+The trade-off is less low-level query control, but the code remains safer and easier to maintain.
+
+
+## TD-314 — Include assessment requirement mapping in README
+
+### Decision
+
+Include assessment requirement mapping in README.
+
+### Reason
+
+Clear documentation makes the project easier to evaluate, run, and defend in a technical review.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-315 — Document known limitations honestly
+
+### Decision
+
+Document known limitations honestly.
+
+### Reason
+
+This decision keeps the MVP consistent with the previously defined architecture, reduces ambiguity, and supports a controlled AI-assisted implementation workflow.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+
+
+## TD-316 — Use plural table names and singular code models
+
+### Decision
+
+Use plural snake_case SQL table names and singular PascalCase Prisma/code models.
+
+### Reason
+
+A relational model fits the normalized data requirements, relationships, constraints, and audit history of the casino MVP.
+
+### Trade-offs
+
+The trade-off is accepted because the decision improves clarity, maintainability, or assessment alignment without adding unnecessary complexity.
+

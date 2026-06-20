@@ -123,13 +123,8 @@ model SpinHistory {
   id            String   @id @default(uuid()) @db.Uuid
   userId        String   @map("user_id") @db.Uuid
   gameId        String   @map("game_id") @db.Uuid
-  reel1Symbol   String   @map("reel1_symbol") @db.VarChar(20)
-  reel2Symbol   String   @map("reel2_symbol") @db.VarChar(20)
-  reel3Symbol   String   @map("reel3_symbol") @db.VarChar(20)
   reelResultKey String   @map("reel_result_key") @db.VarChar(100)
-  betAmount     Decimal  @map("bet_amount") @db.Decimal(12, 2)
-  payoutAmount  Decimal  @map("payout_amount") @db.Decimal(12, 2)
-  netAmount     Decimal  @map("net_amount") @db.Decimal(12, 2)
+  amount        Decimal  @map("amount") @db.Decimal(12, 2)
   balanceBefore Decimal  @map("balance_before") @db.Decimal(12, 2)
   balanceAfter  Decimal  @map("balance_after") @db.Decimal(12, 2)
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
