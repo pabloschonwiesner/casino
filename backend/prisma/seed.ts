@@ -178,6 +178,23 @@ async function seedGames() {
 
   for (const game of gameData) {
     const slug = game.slug;
+    
+    // Generate placeholder image URL since original Contentful space is not accessible
+    // Using a placeholder service with game title as seed for consistent images
+    let thumbnailUrl = game.thumb?.url;
+    
+    // Check if URL is from Contentful (not accessible) or missing
+    if (!thumbnailUrl || thumbnailUrl.includes('ctfassets.net')) {
+      // Use placeholder.com with game title hash for consistent, colorful placeholders
+      const gameHash = game.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const colors = ['FF6B6B', '4ECDC4', '45B7D1', 'FFA07A', '98D8C8', 'F7DC6F', 'BB8FCE', '85C1E2'];
+      const bgColor = colors[gameHash % colors.length];
+      const textColor = 'FFFFFF';
+      thumbnailUrl = `https://via.placeholder.com/280x280/${bgColor}/${textColor}?text=${encodeURIComponent(game.title.substring(0, 20))}`;
+    } else if (thumbnailUrl.startsWith('//')) {
+      // Fix protocol-relative URLs for other sources
+      thumbnailUrl = `https:${thumbnailUrl}`;
+    }
 
     await prisma.game.upsert({
       where: { externalId: game.id },
@@ -187,7 +204,7 @@ async function seedGames() {
         slug: slug,
         title: game.title,
         providerName: game.providerName,
-        thumbnailUrl: game.thumb?.url,
+        thumbnailUrl: thumbnailUrl,
         startUrl: game.startUrl,
         gameTypeId: slotGameType.id,
         isActive: true,

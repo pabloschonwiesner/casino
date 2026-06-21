@@ -1,12 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
+import cookieParser from 'cookie-parser';
 import { AppModule } from '../src/app.module';
+import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Slots E2E', () => {
   let app: INestApplication;
   let authCookie: string;
   let gameId: string;
+  let prisma: PrismaService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -14,6 +17,7 @@ describe('Slots E2E', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -23,6 +27,69 @@ describe('Slots E2E', () => {
     );
     await app.init();
 
+    prisma = app.get<PrismaService>(PrismaService);
+
+    await prisma.currency.upsert({
+      where: { code: 'USD' },
+      update: {},
+      create: {
+        code: 'USD',
+        name: 'US Dollar',
+        symbol: '$',
+        decimalPlaces: 2,
+      },
+    });
+
+    await prisma.country.upsert({
+      where: { iso2: 'US' },
+      update: {},
+      create: {
+        iso2: 'US',
+        iso3: 'USA',
+        name: 'United States',
+        flagUrl: 'https://flagcdn.com/us.svg',
+        currencyCode: 'USD',
+      },
+    });
+
+    const gameType = await prisma.gameType.upsert({
+      where: { code: 'slot' },
+      update: {},
+      create: {
+        code: 'slot',
+        name: 'Slot',
+      },
+    });
+
+    const game = await prisma.game.upsert({
+      where: { externalId: 'test-slot-machine' },
+      update: {},
+      create: {
+        externalId: 'test-slot-machine',
+        slug: 'test-slot-machine',
+        title: 'Test Slot Machine',
+        providerName: 'Test Provider',
+        gameTypeId: gameType.id,
+        isActive: true,
+      },
+    });
+
+    await prisma.gameCountry.upsert({
+      where: {
+        gameId_countryIso2: {
+          gameId: game.id,
+          countryIso2: 'US',
+        },
+      },
+      update: {},
+      create: {
+        gameId: game.id,
+        countryIso2: 'US',
+      },
+    });
+
+    gameId = game.id;
+
     const timestamp = Date.now();
     const registerRes = await request(app.getHttpServer())
       .post('/auth/register')
@@ -31,15 +98,14 @@ describe('Slots E2E', () => {
         password: 'Password123!',
         countryIso2: 'US',
         preferredCurrencyCode: 'USD',
-      });
+      })
+      .expect(201);
 
-    authCookie = registerRes.headers['set-cookie'][0];
-
-    const gamesRes = await request(app.getHttpServer())
-      .get('/games')
-      .set('Cookie', authCookie);
-
-    gameId = gamesRes.body.games[0]?.id;
+    const cookies = registerRes.headers['set-cookie'];
+    if (!cookies || cookies.length === 0) {
+      throw new Error('No authentication cookie received from register endpoint');
+    }
+    authCookie = cookies[0];
   });
 
   afterAll(async () => {

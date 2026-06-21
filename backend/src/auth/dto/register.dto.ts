@@ -16,4 +16,10 @@ export class RegisterDto {
     message: 'Country code must be 2 uppercase letters',
   })
   countryIso2: string;
+
+  @IsString()
+  @Matches(/^[A-Z]{3}$/, {
+    message: 'Currency code must be 3 uppercase letters',
+  })
+  preferredCurrencyCode: string;
 }

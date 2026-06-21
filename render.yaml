@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: casino-backend
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: cd backend && npm install && npx prisma generate && npm run build
+    startCommand: cd backend && npx prisma migrate deploy && npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: casino-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: MASSIVE_API_BASE_URL
+        value: https://api.polygon.io
+      - key: MASSIVE_API_KEY
+        sync: false
+
+  - type: web
+    name: casino-frontend
+    env: static
+    region: frankfurt
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+
+databases:
+  - name: casino-db
+    databaseName: casino
+    plan: free
+    region: frankfurt
