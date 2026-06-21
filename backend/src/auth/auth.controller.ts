@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -27,6 +28,7 @@ export class AuthController {
     });
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
@@ -37,6 +39,7 @@ export class AuthController {
     return { user };
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,

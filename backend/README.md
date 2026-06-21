@@ -23,7 +23,64 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Casino backend API built with NestJS, PostgreSQL, and Prisma.
+
+## Security
+
+This application implements multiple security layers:
+
+### Authentication & Authorization
+- **JWT Authentication**: HttpOnly cookies for token storage (no localStorage)
+- **Cookie Security**: 
+  - `httpOnly: true` - prevents XSS attacks
+  - `sameSite: 'lax'` - prevents CSRF attacks
+  - `secure: true` in production - HTTPS only
+  - 7-day expiration
+- **Protected Routes**: JwtAuthGuard for authenticated endpoints
+- **Optional Auth**: OptionalJwtAuthGuard for public endpoints with user context
+
+### Input Validation
+- **Global ValidationPipe**: Automatic DTO validation with class-validator
+- **Whitelist**: Strips unknown properties from requests
+- **Transform**: Automatic type conversion and sanitization
+
+### Rate Limiting
+- **Global Rate Limit**: 10 requests per minute per IP
+- **Auth Endpoints**: 5 requests per minute (login, register)
+- **Spin Endpoint**: 20 requests per minute
+- **Protection**: Prevents brute force and abuse
+
+### CORS Configuration
+- **Restricted Origin**: Only `FRONTEND_URL` allowed (no wildcards)
+- **Credentials**: Enabled for cookie-based auth
+- **Methods**: Limited to necessary HTTP methods
+- **Headers**: Restricted to Content-Type and Authorization
+
+### Security Headers
+- **Helmet**: Enabled for secure HTTP headers
+  - Content Security Policy
+  - X-Frame-Options
+  - X-Content-Type-Options
+  - Strict-Transport-Security (production)
+
+### Logging & Monitoring
+- **Request Logging**: All requests logged with method, path, status, duration, userId
+- **No Sensitive Data**: Passwords, tokens, and cookies never logged
+- **Error Handling**: Safe error messages (no stack traces in production)
+
+### Database Security
+- **Prisma ORM**: Parameterized queries prevent SQL injection
+- **Decimal Precision**: Custom utilities for financial calculations
+- **Transactions**: ACID compliance for critical operations
+
+### Environment Variables
+Required security configuration in `.env`:
+```env
+DATABASE_URL=postgresql://...
+JWT_SECRET=<strong-random-secret>
+FRONTEND_URL=http://localhost:5173
+NODE_ENV=production
+```
 
 ## Project setup
 
