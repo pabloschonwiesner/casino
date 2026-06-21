@@ -212,7 +212,11 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+## Testing
+
+The project includes comprehensive tests for critical business logic and API endpoints.
+
+### Run tests
 
 ```bash
 # unit tests
@@ -223,7 +227,33 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+
+# watch mode
+$ npm run test:watch
 ```
+
+### Test Coverage
+
+**Unit Tests:**
+- `SlotsService` - Payout calculation logic, spin validation, reel result keys
+- `AuthService` - Registration, login, password hashing
+- `CurrenciesService` - Currency conversion, exchange rate caching
+
+**E2E Tests:**
+- Auth flow - Registration, login, logout, session management
+- Slots flow - Complete spin flow with balance updates and history persistence
+
+**External API Mocking:**
+- Forex adapter is mocked in tests to avoid external API calls
+- Consistent test data for predictable results
+
+### Test Philosophy
+
+- Focus on critical business rules (payout calculations, authentication, balance management)
+- Mock external dependencies (database, forex API)
+- E2E tests verify complete user flows
+- No strict global coverage threshold - quality over quantity
+- Manual accessibility validation remains required
 
 ## Deployment
 
