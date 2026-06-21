@@ -1,6 +1,9 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { CurrencyConverter } from '../currency/CurrencyConverter';
+import { Button } from '../ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { User, LogOut, Coins } from 'lucide-react';
 
 export default function AuthenticatedLayout() {
   const { user, logout } = useAuth();
@@ -10,36 +13,63 @@ export default function AuthenticatedLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                Casino
-              </h1>
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link to="/games" className="flex items-center space-x-2">
+            <Coins className="h-5 w-5 sm:h-6 sm:w-6" />
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+              Casino
+            </h1>
+          </Link>
+          
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Balance - Hidden on mobile, shown on tablet+ */}
+            <div className="hidden md:flex items-center gap-2 text-sm">
+              <span className="font-semibold">{user?.balance}</span>
+              <span className="text-muted-foreground">coins</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                <span className="font-medium">{user?.email}</span>
-              </div>
-              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                Balance: {user?.balance} coins
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {user?.preferredCurrencyCode}
-              </div>
+            
+            {/* Currency Converter */}
+            <div className="hidden sm:block">
               <CurrencyConverter />
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Logout
-              </button>
             </div>
+            
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <User className="h-4 w-4" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user?.email}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.preferredCurrencyCode}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="md:hidden">
+                  <Coins className="mr-2 h-4 w-4" />
+                  <span>Balance: {user?.balance} coins</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="sm:hidden">
+                  <CurrencyConverter />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="sm:hidden" />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-      </nav>
+      </header>
       <main>
         <Outlet />
       </main>

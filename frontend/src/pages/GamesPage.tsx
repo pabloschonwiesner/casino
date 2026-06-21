@@ -45,23 +45,23 @@ export default function GamesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-[1600px]">
+      <div className="mb-6 sm:mb-8 space-y-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
           Games Catalog
-        </h2>
+        </h1>
         <GameSearchInput value={searchQuery} onChange={handleSearchChange} />
       </div>
 
       {isLoading && (
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">Loading games...</p>
+          <p className="text-muted-foreground">Loading games...</p>
         </div>
       )}
 
       {error && (
         <div className="text-center py-12">
-          <p className="text-red-600 dark:text-red-400">
+          <p className="text-destructive">
             Failed to load games. Please try again later.
           </p>
         </div>

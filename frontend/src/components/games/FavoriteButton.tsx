@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Heart } from 'lucide-react';
 import { favoritesApi } from '../../api/favorites';
+import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 interface FavoriteButtonProps {
   gameId: string;
@@ -24,32 +27,22 @@ export function FavoriteButton({ gameId, gameTitle, isFavorite }: FavoriteButton
   };
 
   return (
-    <button
+    <Button
       type="button"
+      variant="secondary"
+      size="icon"
       onClick={handleClick}
       disabled={toggleFavoriteMutation.isPending}
       aria-label={isFavorite ? `Remove ${gameTitle} from favorites` : `Add ${gameTitle} to favorites`}
       aria-pressed={isFavorite}
-      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill={isFavorite ? 'currentColor' : 'none'}
-        stroke="currentColor"
-        strokeWidth="2"
-        className={`w-5 h-5 ${
-          isFavorite
-            ? 'text-red-500 dark:text-red-400'
-            : 'text-gray-400 dark:text-gray-500'
-        }`}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-        />
-      </svg>
-    </button>
+      <Heart
+        className={cn(
+          'h-4 w-4 transition-colors',
+          isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+        )}
+      />
+    </Button>
   );
 }
