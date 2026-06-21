@@ -82,6 +82,117 @@ FRONTEND_URL=http://localhost:5173
 NODE_ENV=production
 ```
 
+## API Documentation
+
+Interactive API documentation is available at `/api/docs` when the server is running.
+
+### Endpoints Summary
+
+| Method | Endpoint | Auth | Description | Rate Limit |
+|--------|----------|------|-------------|------------|
+| **Auth** |
+| POST | `/auth/register` | No | Register new user | 5/min |
+| POST | `/auth/login` | No | Login user | 5/min |
+| GET | `/auth/me` | Yes | Get current user | 10/min |
+| POST | `/auth/logout` | Yes | Logout user | 10/min |
+| **Countries** |
+| GET | `/countries` | No | List countries | 10/min |
+| **Currencies** |
+| GET | `/currencies` | No | List currencies | 10/min |
+| POST | `/currencies/convert` | Yes | Convert balance (display only) | 10/min |
+| **Games** |
+| GET | `/games` | Optional | List games with search/pagination | 10/min |
+| GET | `/games/:slug` | Optional | Get game details | 10/min |
+| **Favorites** |
+| POST | `/favorites/:gameId` | Yes | Add game to favorites | 10/min |
+| DELETE | `/favorites/:gameId` | Yes | Remove from favorites | 10/min |
+| **Slots** |
+| POST | `/slots/spin` | Yes | Spin slot machine | 20/min |
+| GET | `/slots/history` | Yes | Get spin history | 10/min |
+
+### Authentication
+
+This API uses **HttpOnly cookies** for authentication. JWT tokens are automatically set in cookies after successful registration or login.
+
+#### Register Example
+
+```bash
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123!",
+    "countryIso2": "US",
+    "preferredCurrencyCode": "USD"
+  }' \
+  -c cookies.txt
+```
+
+#### Login Example
+
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123!"
+  }' \
+  -c cookies.txt
+```
+
+#### Authenticated Request Example
+
+```bash
+# Get current user (requires login cookie)
+curl -X GET http://localhost:3000/auth/me \
+  -b cookies.txt
+
+# Spin slot machine
+curl -X POST http://localhost:3000/slots/spin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "gameId": "game-uuid-here",
+    "betAmount": 1.0
+  }' \
+  -b cookies.txt
+
+# Convert balance
+curl -X POST http://localhost:3000/currencies/convert \
+  -H "Content-Type: application/json" \
+  -d '{
+    "targetCurrency": "EUR"
+  }' \
+  -b cookies.txt
+```
+
+#### Logout Example
+
+```bash
+curl -X POST http://localhost:3000/auth/logout \
+  -b cookies.txt \
+  -c cookies.txt
+```
+
+### Error Responses
+
+All endpoints return consistent error responses:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Error description",
+  "error": "Bad Request"
+}
+```
+
+Common status codes:
+- `400` - Bad Request (validation errors)
+- `401` - Unauthorized (missing or invalid JWT)
+- `403` - Forbidden (game not available in user country)
+- `404` - Not Found
+- `429` - Too Many Requests (rate limit exceeded)
+- `500` - Internal Server Error
+
 ## Project setup
 
 ```bash
