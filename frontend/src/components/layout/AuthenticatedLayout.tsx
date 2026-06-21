@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { CurrencyConverter } from '../currency/CurrencyConverter';
 
 export default function AuthenticatedLayout() {
   const { user, logout } = useAuth();
@@ -28,6 +29,7 @@ export default function AuthenticatedLayout() {
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 {user?.preferredCurrencyCode}
               </div>
+              <CurrencyConverter />
               <button
                 onClick={handleLogout}
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
