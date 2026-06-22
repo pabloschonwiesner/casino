@@ -2,11 +2,14 @@ import { IsEmail, IsString, MinLength, Matches } from 'class-validator';
 
 export class RegisterDto {
   @IsEmail()
+  @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, {
+    message: 'Email address invalid',
+  })
   email: string;
 
   @IsString()
   @MinLength(8)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$.!%*?&])[A-Za-z\d@$!%*?&]/, {
     message: 'Password must contain uppercase, lowercase, number and special character',
   })
   password: string;
@@ -16,10 +19,4 @@ export class RegisterDto {
     message: 'Country code must be 2 uppercase letters',
   })
   countryIso2: string;
-
-  @IsString()
-  @Matches(/^[A-Z]{3}$/, {
-    message: 'Currency code must be 3 uppercase letters',
-  })
-  preferredCurrencyCode: string;
 }

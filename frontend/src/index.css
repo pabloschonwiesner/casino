@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@config '../tailwind.config.js';
 
 @layer base {
   :root {
@@ -46,8 +45,8 @@
       --accent-foreground: 0 0% 98%;
       --destructive: 0 62.8% 30.6%;
       --destructive-foreground: 0 0% 98%;
-      --border: 240 3.7% 15.9%;
-      --input: 240 3.7% 15.9%;
+      --border: 240 1% 51%;
+      --input: 240 1% 30%;
       --ring: 240 4.9% 83.9%;
     }
   }
