@@ -166,11 +166,11 @@ PORT=3000
 ### Frontend
 
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
 **Required:**
-- `VITE_API_URL` - Backend API base URL
+- `VITE_API_BASE_URL` - Backend API base URL
 
 ## Database Migrations and Seeding
 
