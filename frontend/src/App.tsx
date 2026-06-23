@@ -41,6 +41,9 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route element={<AuthenticatedLayout />}>
+          <Route path="/games" element={<GamesPage />} />
+        </Route>
         <Route
           element={
             <ProtectedRoute>
@@ -48,7 +51,6 @@ function AppContent() {
             </ProtectedRoute>
           }
         >
-          <Route path="/games" element={<GamesPage />} />
           <Route path="/slot-machine/:gameSlug" element={<SlotMachinePage />} />
         </Route>
         <Route path="/" element={<Navigate to="/games" replace />} />
