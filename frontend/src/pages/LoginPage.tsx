@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { authApi } from '../api/auth';
-import { useAuth } from '../contexts/AuthContext';
+import { authApi } from '@/api/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/ui/login-form';
 
 export default function LoginPage() {
@@ -15,10 +15,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null)
     setIsLoading(true);
 
     try {
-      setError(null)
       const response = await authApi.login({ email, password });
       login(response.user);
       const redirectTo = searchParams.get('redirectTo') || '/games';

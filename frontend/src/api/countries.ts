@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { Country } from '../types/auth';
+import type { Country } from '../types/country';
 
 export const countriesApi = {
   getCountries: async (): Promise<Country[]> => {

@@ -1,8 +1,8 @@
 import { Outlet, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { CurrencyConverter } from '../currency/CurrencyConverter';
-import { Button } from '../ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
+import { CurrencyConverter } from '@/components/currency/CurrencyConverter';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { User, LogOut, Coins } from 'lucide-react';
 
 export default function AuthenticatedLayout() {
@@ -32,7 +32,7 @@ export default function AuthenticatedLayout() {
             
             {/* Currency Converter */}
             <div className="hidden sm:block">
-              <CurrencyConverter />
+              <CurrencyConverter preferredCurrencyCode={user?.preferredCurrencyCode || 'USD'} />
             </div>
             
             {/* User Menu */}
@@ -56,9 +56,6 @@ export default function AuthenticatedLayout() {
                 <DropdownMenuItem className="md:hidden">
                   <Coins className="mr-2 h-4 w-4" />
                   <span>Balance: {user?.balance} coins</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="sm:hidden">
-                  <CurrencyConverter />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="sm:hidden" />
                 <DropdownMenuItem onClick={handleLogout}>

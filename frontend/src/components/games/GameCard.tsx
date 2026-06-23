@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { Game } from '../../api/games';
+import type { Game } from '@/types/games';
 import { FavoriteButton } from './FavoriteButton';
-import { Card } from '../ui/card';
+import { Card } from '@/components/ui/card';
 
 interface GameCardProps {
   game: Game;

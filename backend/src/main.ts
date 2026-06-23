@@ -58,10 +58,11 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT ?? 3000;
-  await app.listen(port);
+  await app.listen(port, () => {
+    logger.log(`Application is running on: http://localhost:${port}`);
+    logger.log(`API Documentation available at: http://localhost:${port}/api/docs`);
+    logger.log(`CORS enabled for: ${frontendUrl}`);
+  });
   
-  logger.log(`Application is running on: http://localhost:${port}`);
-  logger.log(`API Documentation available at: http://localhost:${port}/api/docs`);
-  logger.log(`CORS enabled for: ${frontendUrl}`);
 }
 bootstrap();

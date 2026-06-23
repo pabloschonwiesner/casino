@@ -9,12 +9,17 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import type { Country } from "@/types/auth"
+import type { Country } from "@/types/country"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { EMAIL_PATTERN, PASSWORD_PATTERN } from "@/types/constants"
+import { useState } from "react"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "./input-group"
+import { EyeIcon, EyeOffIcon } from "lucide-react"
 
 interface SignupFormProps {
   email: string;
@@ -28,6 +33,7 @@ interface SignupFormProps {
   handleSubmit?: (e: React.FormEvent) => void;
   isLoading: boolean;
   countries: Country[];
+  error?: string;
 }
 
 export function SignupForm({ 
@@ -41,8 +47,24 @@ export function SignupForm({
   setCountryIso2,
   handleSubmit,
   isLoading,
-  countries
+  countries,
+  error
 }: SignupFormProps) {
+
+  const [showInvalidEmail, setShowInvalidEmail] = useState(false);
+  const [showInvalidPassword, setShowInvalidPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const isEmailValid = EMAIL_PATTERN.test(email.trim())
+  const isPasswordValid = PASSWORD_PATTERN.test(password)
+  const isConfirmPasswordValid = confirmPassword === password
+  const isSubmitDisabled = isLoading || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid || !countryIso2
+
+  const handleOnBlurEmail = () => {
+    setShowInvalidEmail(!isEmailValid);
+  }
+  const handleOnBlurPassword = () => {
+    setShowInvalidPassword(!isPasswordValid);
+  }
 
   return (
     <Card>
@@ -65,46 +87,80 @@ export function SignupForm({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={handleOnBlurEmail}
+                onFocus={() => setShowInvalidEmail(false)}
                 disabled={isLoading}
               />
+              {showInvalidEmail && <FieldError>Invalid email</FieldError>}
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                placeholder="Min 8 chars, uppercase, lowercase, number, special"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
-              <FieldDescription>
-                Must be at least 8 characters long.
-              </FieldDescription>
+              <InputGroup>
+
+                <InputGroupInput 
+                  id="password" 
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={handleOnBlurPassword}
+                  disabled={isLoading}
+                  placeholder="Input your password"
+                  className="pr-16"
+                />
+                <InputGroupAddon align="inline-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    disabled={isLoading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 mr-2"
+                  >
+                    {showPassword ? <EyeOffIcon size={16}/> : <EyeIcon size={16}/>}
+                  </button>
+                </InputGroupAddon>
+              </InputGroup>
+              {showInvalidPassword && <FieldError>Invalid password</FieldError>}
+              <FieldDescription className="text-xs">Min 8 chars, uppercase, lowercase, number, special</FieldDescription>
             </Field>
             <Field>
-              <FieldLabel htmlFor="confirm-password">
-                Confirm Password
-              </FieldLabel>
-              <Input
-                id="confirm-password"
-                name="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                placeholder="Min 8 chars, uppercase, lowercase, number, special"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-              />
+              <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+              <InputGroup>
+
+                <InputGroupInput 
+                  id="confirm-password" 
+                  name="confirm-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  placeholder="Confirm your password"
+                  className="pr-16"
+                />
+                <InputGroupAddon align="inline-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    disabled={isLoading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 mr-2"
+                  >
+                    {showPassword ? <EyeOffIcon size={16}/> : <EyeIcon size={16}/>}
+                  </button>
+                </InputGroupAddon>
+              </InputGroup>
               <FieldDescription>Please confirm your password.</FieldDescription>
             </Field>
+            
             <FieldGroup>
-              <FieldLabel htmlFor="confirm-password">Country</FieldLabel>
+              <FieldLabel htmlFor="country">Country</FieldLabel>
               <Select
+                name="country"
                 value={countryIso2}
                 onValueChange={setCountryIso2}
                 disabled={isLoading}
@@ -121,10 +177,11 @@ export function SignupForm({
                   ))}
                 </SelectContent>
               </Select>
+              <FieldError>{error}</FieldError>
             </FieldGroup>
             <FieldGroup>
               <Field>
-                <Button type="submit">Create Account</Button>
+                <Button type="submit" disabled={isSubmitDisabled}>Create Account</Button>
                 <FieldDescription className="px-6 text-center">
                   Already have an account? <a href="/login">Sign in</a>
                 </FieldDescription>

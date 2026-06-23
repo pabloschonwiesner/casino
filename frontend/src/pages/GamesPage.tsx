@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { gamesApi } from '../api/games';
-import type { Game } from '../api/games';
-import { useAuth } from '../contexts/AuthContext';
-import { useDebounce } from '../hooks/useDebounce';
-import { GameGrid } from '../components/games/GameGrid';
-import { GameSearchInput } from '../components/games/GameSearchInput';
-import { GamePagination } from '../components/games/GamePagination';
+import { gamesApi } from '@/api/games';
+import type { Game } from '@/types/games';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDebounce } from '@/hooks/useDebounce';
+import { GameGrid } from '@/components/games/GameGrid';
+import { GameSearchInput } from '@/components/games/GameSearchInput';
+import { GamePagination } from '@/components/games/GamePagination';
 
 export default function GamesPage() {
   const [searchQuery, setSearchQuery] = useState('');

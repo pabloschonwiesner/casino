@@ -28,7 +28,6 @@ export class SlotsController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 404, description: 'Game not found or not available in user country.' })
   @ApiResponse({ status: 429, description: 'Too many requests. Rate limit: 20 requests per minute.' })
-  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('spin')
   async spin(@Body() spinDto: SpinDto, @Request() req) {
     return this.slotsService.spin(

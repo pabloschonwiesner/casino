@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart } from 'lucide-react';
-import { favoritesApi } from '../../api/favorites';
-import { Button } from '../ui/button';
+import { favoritesApi } from '@/api/favorites';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface FavoriteButtonProps {

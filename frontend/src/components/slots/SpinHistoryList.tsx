@@ -1,15 +1,9 @@
 import type { SpinHistoryItem } from '../../api/slots';
+import { SYMBOL_EMOJI } from '@/types/constants';
 
 interface SpinHistoryListProps {
   history: SpinHistoryItem[];
 }
-
-const SYMBOL_EMOJI: Record<string, string> = {
-  cherry: '🍒',
-  lemon: '🍋',
-  apple: '🍎',
-  banana: '🍌',
-};
 
 export function SpinHistoryList({ history }: SpinHistoryListProps) {
   if (history.length === 0) {

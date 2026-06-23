@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { gamesApi } from '../api/games';
-import { slotsApi } from '../api/slots';
-import type { SpinResponse } from '../api/slots';
-import { useAuth } from '../contexts/AuthContext';
-import { ReelDisplay } from '../components/slots/ReelDisplay';
-import { BetSelector } from '../components/slots/BetSelector';
-import { SpinButton } from '../components/slots/SpinButton';
-import { SpinResult } from '../components/slots/SpinResult';
-import { SpinHistoryList } from '../components/slots/SpinHistoryList';
+import { gamesApi } from '@/api/games';
+import { slotsApi } from '@/api/slots';
+import type { SpinResponse } from '@/api/slots';
+import { useAuth } from '@/contexts/AuthContext';
+import { ReelDisplay } from '@/components/slots/ReelDisplay';
+import { BetSelector } from '@/components/slots/BetSelector';
+import { SpinButton } from '@/components/slots/SpinButton';
+import { SpinResult } from '@/components/slots/SpinResult';
+import { SpinHistoryList } from '@/components/slots/SpinHistoryList';
 
 export default function SlotMachinePage() {
   const { gameSlug } = useParams<{ gameSlug: string }>();
@@ -44,6 +44,9 @@ export default function SlotMachinePage() {
       refreshUser();
       queryClient.invalidateQueries({ queryKey: ['slots-history'] });
     },
+    onError: (error) => {
+      console.error('Spin failed:', error);
+    }
   });
 
   useEffect(() => {

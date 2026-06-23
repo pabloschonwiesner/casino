@@ -1,24 +1,12 @@
+import { SYMBOL_EMOJI, SYMBOL_NAMES } from "@/types/constants";
+
 interface ReelDisplayProps {
-  reels: {
+  reels: {  
     reel1: string;
     reel2: string;
     reel3: string;
   };
 }
-
-const SYMBOL_EMOJI: Record<string, string> = {
-  cherry: '🍒',
-  lemon: '🍋',
-  apple: '🍎',
-  banana: '🍌',
-};
-
-const SYMBOL_NAMES: Record<string, string> = {
-  cherry: 'Cherry',
-  lemon: 'Lemon',
-  apple: 'Apple',
-  banana: 'Banana',
-};
 
 export function ReelDisplay({ reels }: ReelDisplayProps) {
   const symbols = [reels.reel1, reels.reel2, reels.reel3];

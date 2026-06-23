@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '../api/auth';
-import { countriesApi } from '../api/countries';
-import { useAuth } from '../contexts/AuthContext';
-import type { Country } from '../types/auth';
+import { authApi } from '@/api/auth';
+import { countriesApi } from '@/api/countries';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Country } from '@/types/country';
 import { SignupForm } from '@/components/ui/signup-form';
 
 export default function RegisterPage() {
@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
     setIsLoading(true);
 
     try {
@@ -39,6 +39,7 @@ export default function RegisterPage() {
       login(response.user);
       navigate('/games');
     } catch (err: any) {
+      console.error('Registration error:', err);
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -50,6 +51,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <SignupForm 
           email={email}
+          error={error}
           password={password}
           handleSubmit={handleSubmit}
           countryIso2={countryIso2}

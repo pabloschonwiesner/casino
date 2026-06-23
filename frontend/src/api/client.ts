@@ -8,4 +8,23 @@ const apiClient = axios.create({
   },
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 429) {
+      console.error('Rate limit exceeded');
+ 
+      window.dispatchEvent(
+        new CustomEvent('api:rate-limited', {
+          detail: {
+            message: 'Too many requests. Please wait a moment and try again.',
+          },
+        })
+      );
+    }
+ 
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;
