@@ -21,10 +21,11 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   private setAuthCookie(res: Response, token: string): void {
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('access_token', token, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: isProduction ? 'none' : 'lax',
+      secure: isProduction,
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -79,10 +80,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
+    const isProduction = process.env.NODE_ENV === 'production';
     res.clearCookie('access_token', {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: isProduction ? 'none' : 'lax',
+      secure: isProduction,
       path: '/',
     });
 
