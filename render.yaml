@@ -25,7 +25,6 @@ services:
   - type: web
     name: casino-frontend
     env: static
-    region: frankfurt
     plan: free
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
