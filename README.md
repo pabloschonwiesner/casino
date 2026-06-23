@@ -291,13 +291,46 @@ npm install && npm run build
 
 #### Post-Deployment
 
-1. Access backend API docs at `<backend-url>/api/docs`
-2. Run seed script manually if needed:
+**IMPORTANT:** After first deployment, you must seed the database:
+
+1. Go to Render Dashboard → Your backend service → Shell
+2. Run the seed command:
    ```bash
-   npm run db:seed
+   cd backend && npm run db:seed
    ```
-3. Test registration and login flows
-4. Verify CORS configuration
+3. Verify seed completed successfully (should see "Database seed completed successfully!")
+4. Access backend API docs at `<backend-url>/api/docs`
+5. Test registration and login flows
+
+**Note:** The seed populates required data (currencies, countries, games). Without it, endpoints like `/countries` and `/auth/register` will fail with 500 errors.
+
+#### Troubleshooting Render Deployment
+
+**Error: 500 Internal Server Error on `/countries` or `/auth/register`**
+- **Cause:** Database not seeded
+- **Solution:** Run `cd backend && npm run db:seed` in Render Shell (see Post-Deployment steps above)
+
+**Error: CORS errors in browser console**
+- **Cause:** `FRONTEND_URL` environment variable not set correctly
+- **Solution:** Set `FRONTEND_URL` to your exact frontend URL (e.g., `https://casino-frontend.onrender.com`) in backend service environment variables
+
+**Error: Frontend can't connect to backend**
+- **Cause:** `VITE_API_BASE_URL` not set correctly
+- **Solution:** Set `VITE_API_BASE_URL` to your backend URL (e.g., `https://casino-backend.onrender.com`) and redeploy frontend
+
+**Error: Database connection failed**
+- **Cause:** `DATABASE_URL` not configured
+- **Solution:** Verify database is created and `DATABASE_URL` is linked in `render.yaml`
+
+**Verify deployment:**
+```bash
+# Check backend health
+curl https://your-backend.onrender.com/api/docs
+
+# Check database has data
+# In Render Shell:
+cd backend && npx prisma studio
+```
 
 ## Security
 
