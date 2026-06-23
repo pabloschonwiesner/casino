@@ -91,17 +91,21 @@ export default function SlotMachinePage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
         <ReelDisplay reels={reels} />
 
-        <BetSelector
-          betAmount={betAmount}
-          onBetChange={setBetAmount}
-          disabled={spinMutation.isPending}
-        />
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end">
+          <BetSelector
+            betAmount={betAmount}
+            onBetChange={setBetAmount}
+            disabled={spinMutation.isPending}
+          />
 
-        <SpinButton
-          onSpin={handleSpin}
-          disabled={spinMutation.isPending}
-          isSpinning={spinMutation.isPending}
-        />
+          <div className="md:w-auto md:min-w-[220px]">
+            <SpinButton
+              onSpin={handleSpin}
+              disabled={spinMutation.isPending}
+              isSpinning={spinMutation.isPending}
+            />
+          </div>
+        </div>
 
         {spinMutation.isError && (
           <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-md">
