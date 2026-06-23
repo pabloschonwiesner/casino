@@ -88,13 +88,8 @@ CREATE TABLE "spin_history" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
     "game_id" UUID NOT NULL,
-    "reel1_symbol" VARCHAR(20) NOT NULL,
-    "reel2_symbol" VARCHAR(20) NOT NULL,
-    "reel3_symbol" VARCHAR(20) NOT NULL,
     "reel_result_key" VARCHAR(100) NOT NULL,
-    "bet_amount" DECIMAL(12,2) NOT NULL,
-    "payout_amount" DECIMAL(12,2) NOT NULL,
-    "net_amount" DECIMAL(12,2) NOT NULL,
+    "amount" DECIMAL(12,2) NOT NULL,
     "balance_before" DECIMAL(12,2) NOT NULL,
     "balance_after" DECIMAL(12,2) NOT NULL,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -173,18 +168,3 @@ ALTER TABLE "spin_history" ADD CONSTRAINT "spin_history_user_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "spin_history" ADD CONSTRAINT "spin_history_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- Add CHECK constraints
-ALTER TABLE "users" ADD CONSTRAINT "users_balance_check" CHECK (balance >= 0);
-
-ALTER TABLE "spin_history" ADD CONSTRAINT "spin_history_bet_amount_check" CHECK (bet_amount > 0);
-
-ALTER TABLE "spin_history" ADD CONSTRAINT "spin_history_payout_amount_check" CHECK (payout_amount >= 0);
-
-ALTER TABLE "spin_history" ADD CONSTRAINT "spin_history_balance_check" CHECK (balance_after = balance_before + net_amount);
-
-ALTER TABLE "spin_history" ADD CONSTRAINT "spin_history_symbols_check" CHECK (
-    reel1_symbol IN ('cherry', 'lemon', 'apple', 'banana') AND
-    reel2_symbol IN ('cherry', 'lemon', 'apple', 'banana') AND
-    reel3_symbol IN ('cherry', 'lemon', 'apple', 'banana')
-);
